@@ -19,7 +19,7 @@ import java.awt.image.BufferedImage
 
 OrbitLogAppender.GUI_APPENDER = false;   // no GUI (error) popups
 
-topDirPath = 'C:\\Users\\Hajo\\Desktop\\Orbit batch test'
+topDirPath = 'C:\\Users\\dev\\Desktop\\Orbit batch test'
 totalOutputFile = new File(topDirPath + "\\OUTPUT_TOTAL.txt")
 def topDir = new File(topDirPath); //wijzig voor top folder
 ip = DALConfig.getImageProvider(); //TODO: heeft dit ook een check nodig?
