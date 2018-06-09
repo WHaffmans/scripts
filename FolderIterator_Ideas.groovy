@@ -76,7 +76,7 @@ topDir.eachDir{
     println "Done with: " + it.path; //print elke folder in de topfolder
 
 
-    //TODO: accumulakate result in csv
+    //T ODO: accumulakate result in csv
 
 
     }
