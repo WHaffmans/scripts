@@ -4,6 +4,8 @@ import com.actelion.research.orbit.imageAnalysis.utils.OrbitLogAppender
 import com.actelion.research.orbit.imageAnalysis.utils.OrbitHelper
 import com.actelion.research.orbit.imageAnalysis.models.OrbitModel
 //import com.actelion.research.orbit.imageAnalysis.dal.ImageProviderLocal
+import com.actelion.research.orbit.beans.RawDataFile
+import com.actelion.research.orbit.imageAnalysis.components.RecognitionFrame
 import com.actelion.research.orbit.imageAnalysis.dal.DALConfig
 import com.actelion.research.orbit.imageAnalysis.tasks.classification.ClassificationWorkerMapReduce
 
@@ -35,7 +37,9 @@ topDir.eachDir{
     //Get current Image
 	imgPath = ""
 	it.eachFileMatch ~/.*\.ndpi$/, {imgPath = it.path} //TODO: check en log
-	rdfList = Collections.singletonList(ip.registerFile(new File(imgPath), 1)) //TODO: try-catch?
+    rdf = ip.registerFile(new File(imgPath), 1)
+    RecognitionFrame rf = new RecognitionFrame(rdf);
+	rdfList = Collections.singletonList(rdf) //TODO: try-catch?
 
 	//Run Classification
     useScaleout = false; 
@@ -57,11 +61,10 @@ topDir.eachDir{
     int width = 200;
     def fn = it.path + "\\OUTPUT.jpg";
 
-    final OrbitImageAnalysis OIA = OrbitImageAnalysis.getInstance();
-    final ImageFrame iFrame = OIA.getIFrame();
-    final TiledImage classImg = iFrame.getRecognitionFrame().getClassImage().getImage();
-    OrbitTiledImage2 mainImgTmp = iFrame.getRecognitionFrame().bimg.getImage();
-    for (TiledImagePainter tip: iFrame.getRecognitionFrame().bimg.getMipMaps()) {
+    
+    final TiledImage classImg = rf.getClassImage().getImage();
+    OrbitTiledImage2 mainImgTmp = rf.bimg.getImage();
+    for (TiledImagePainter tip: rf.bimg.getMipMaps()) {
         // find a good resolution size
         if (tip.getWidth()>width)
             mainImgTmp = tip.getImage();
