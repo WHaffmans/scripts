@@ -39,20 +39,24 @@ topDir.eachDir{
 	it.eachFileMatch ~/.*\.ndpi$/, {imgPath = it.path} //TODO: check en log
     rdf = ip.registerFile(new File(imgPath), 1)
     RecognitionFrame rf = new RecognitionFrame(rdf);
-	rdfList = Collections.singletonList(rdf) //TODO: try-catch?
+
 
 	//Run Classification
-    useScaleout = false; 
+    //Classify(
+        // final RawDataFile rdf, 
+        // final RecognitionFrame _rf, 
+        // final OrbitModel _model, 
+        // List<Point> tiles, 
+        // int numThreads, 
+        // IScaleableShape overrideROI)
+    println "Start Classification";
+    ClassificationResult res = Classify(rdf, rf, model, Collections.singletonList(new Point(-1, -1)), -1, null); 
+    for (String name : res.getRatio().keySet()) {
+        println (name + ": " + res.getRatio().get(name));
+    }
 
-	cw = new ClassificationWorkerMapReduce(model, rdfList, useScaleout); 
-    println "Start Classification"
-    cw.run();  // perform the classification
-
-	
-	println cw.getTaskResult(); // output the result
-
-    new File(it.path + "\\OUTPUT.txt").text = cw.getTaskResult().toString();
-    totalOutputFile.append(cw.getTaskResult().toString() + '\n');
+    new File(it.path + "\\OUTPUT.txt").text = res.toString();
+    totalOutputFile.append(res.toString() + '\n');
 
     /**
     * Saves a downscaled classification image to disk. Similar to "Tools->Save classification image" functionality.
@@ -78,13 +82,7 @@ topDir.eachDir{
     renderer.saveToDisk(bi, fn);
     println "Done with: " + it.path; //print elke folder in de topfolder
 
-
-    //TODO: accumulakate result in csv
-
-
     }
-
-//TODO: schrijf csv totaal resultaat
 ip.close(); // close image provider connection
 
 
