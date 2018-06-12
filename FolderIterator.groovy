@@ -1,26 +1,17 @@
 import static groovy.io.FileType.FILES
-
+import com.actelion.research.orbit.imageAnalysis.dal.DALConfig
 import com.actelion.research.orbit.imageAnalysis.utils.OrbitLogAppender
 import com.actelion.research.orbit.imageAnalysis.utils.OrbitHelper
-import com.actelion.research.orbit.imageAnalysis.models.OrbitModel
-//import com.actelion.research.orbit.imageAnalysis.dal.ImageProviderLocal
-import com.actelion.research.orbit.beans.RawDataFile
-import com.actelion.research.orbit.imageAnalysis.components.RecognitionFrame
-import com.actelion.research.orbit.imageAnalysis.dal.DALConfig
-//import com.actelion.research.orbit.imageAnalysis.tasks.classification.ClassificationWorkerMapReduce
-
-//Dependencies Classification Image
-import com.actelion.research.orbit.imageAnalysis.components.ImageFrame
-//import com.actelion.research.orbit.imageAnalysis.components.OrbitImageAnalysis
 import com.actelion.research.orbit.imageAnalysis.utils.ClassImageRenderer
 import com.actelion.research.orbit.imageAnalysis.utils.OrbitTiledImage2
 import com.actelion.research.orbit.imageAnalysis.utils.TiledImagePainter
+import com.actelion.research.orbit.imageAnalysis.utils.ClassificationResult
+import com.actelion.research.orbit.imageAnalysis.models.OrbitModel
+import com.actelion.research.orbit.imageAnalysis.components.RecognitionFrame
+import com.actelion.research.orbit.imageAnalysis.components.ImageFrame
+import com.actelion.research.orbit.beans.RawDataFile
 import javax.media.jai.TiledImage
 import java.awt.image.BufferedImage
-
-import com.actelion.research.orbit.imageAnalysis.utils.ClassificationResult
-import com.actelion.research.orbit.imageAnalysis.utils.OrbitHelper
-
 import java.awt.*
 import java.util.List
 
