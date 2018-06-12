@@ -36,13 +36,13 @@ topDir.eachDir{
     println "Enter Folder: " + it.path; //print elke folder in de topfolder
 
     //Get current model
-	modelPath = ""
-	it.eachFileMatch ~/Classification met Ex.omo$/, {modelPath = it.path}  //TODO: check en log
-	OrbitModel model = OrbitModel.LoadFromFile(modelPath); //try-catch?
+    modelPath = ""
+    it.eachFileMatch ~/Classification met Ex.omo$/, {modelPath = it.path}  //TODO: check en log
+    OrbitModel model = OrbitModel.LoadFromFile(modelPath); //try-catch?
 
     //Get current Image
-	imgPath = ""
-	it.eachFileMatch ~/.*\.ndpi$/, {imgPath = it.path} //TODO: check en log
+    imgPath = ""
+    it.eachFileMatch ~/.*\.ndpi$/, {imgPath = it.path} //TODO: check en log
     rdf = ip.registerFile(new File(imgPath), 1)
     RecognitionFrame rf = new RecognitionFrame(rdf);
 
@@ -81,7 +81,7 @@ topDir.eachDir{
     println("writing")
     renderer.saveToDisk(bi, fn);
     println "Done with: " + it.path; //print elke folder in de topfolder
-    }
+}
     
 ip.close(); // close image provider connection
 
