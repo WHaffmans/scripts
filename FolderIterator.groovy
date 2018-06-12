@@ -8,7 +8,6 @@ import com.actelion.research.orbit.imageAnalysis.utils.TiledImagePainter
 import com.actelion.research.orbit.imageAnalysis.utils.ClassificationResult
 import com.actelion.research.orbit.imageAnalysis.models.OrbitModel
 import com.actelion.research.orbit.imageAnalysis.components.RecognitionFrame
-import com.actelion.research.orbit.imageAnalysis.components.ImageFrame
 import com.actelion.research.orbit.beans.RawDataFile
 import javax.media.jai.TiledImage
 import java.awt.image.BufferedImage
