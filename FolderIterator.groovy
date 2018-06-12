@@ -7,17 +7,22 @@ import com.actelion.research.orbit.imageAnalysis.models.OrbitModel
 import com.actelion.research.orbit.beans.RawDataFile
 import com.actelion.research.orbit.imageAnalysis.components.RecognitionFrame
 import com.actelion.research.orbit.imageAnalysis.dal.DALConfig
-import com.actelion.research.orbit.imageAnalysis.tasks.classification.ClassificationWorkerMapReduce
+//import com.actelion.research.orbit.imageAnalysis.tasks.classification.ClassificationWorkerMapReduce
 
 //Dependencies Classification Image
 import com.actelion.research.orbit.imageAnalysis.components.ImageFrame
-import com.actelion.research.orbit.imageAnalysis.components.OrbitImageAnalysis
+//import com.actelion.research.orbit.imageAnalysis.components.OrbitImageAnalysis
 import com.actelion.research.orbit.imageAnalysis.utils.ClassImageRenderer
 import com.actelion.research.orbit.imageAnalysis.utils.OrbitTiledImage2
 import com.actelion.research.orbit.imageAnalysis.utils.TiledImagePainter
 import javax.media.jai.TiledImage
 import java.awt.image.BufferedImage
 
+import com.actelion.research.orbit.imageAnalysis.utils.ClassificationResult
+import com.actelion.research.orbit.imageAnalysis.utils.OrbitHelper
+
+import java.awt.*
+import java.util.List
 
 OrbitLogAppender.GUI_APPENDER = false;   // no GUI (error) popups
 
@@ -50,7 +55,7 @@ topDir.eachDir{
         // int numThreads, 
         // IScaleableShape overrideROI)
     println "Start Classification";
-    ClassificationResult res = Classify(rdf, rf, model, Collections.singletonList(new Point(-1, -1)), -1, null); 
+    ClassificationResult res = OrbitHelper.Classify(rdf, rf, model, Collections.singletonList(new Point(-1, -1)), -1, null); 
     for (String name : res.getRatio().keySet()) {
         println (name + ": " + res.getRatio().get(name));
     }
