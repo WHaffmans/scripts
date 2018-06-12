@@ -73,7 +73,7 @@ topDir.eachDir{
 
     int width = 200;
     def fn = it.path + "\\OUTPUT.jpg";
-
+    rf.constructClassificationImage();
     final TiledImage classImg = rf.getClassImage().getImage();
     OrbitTiledImage2 mainImgTmp = rf.bimg.getImage();
     for (TiledImagePainter tip: rf.bimg.getMipMaps()) {
