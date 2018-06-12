@@ -27,6 +27,8 @@ import java.util.List
 OrbitLogAppender.GUI_APPENDER = false;   // no GUI (error) popups
 
 topDirPath = 'C:\\Users\\dev\\Desktop\\Orbit batch test'
+
+
 totalOutputFile = new File(topDirPath + "\\OUTPUT_TOTAL.txt")
 def topDir = new File(topDirPath); //wijzig voor top folder
 if (!DALConfig.isLocalImageProvider()){
@@ -49,22 +51,21 @@ topDir.eachDir{
     RecognitionFrame rf = new RecognitionFrame(rdf);
 
 
-	//Run Classification
-    //Classify(
-        // final RawDataFile rdf, 
-        // final RecognitionFrame _rf, 
-        // final OrbitModel _model, 
-        // List<Point> tiles, 
-        // int numThreads, 
-        // IScaleableShape overrideROI)
-    println "Start Classification";
-    ClassificationResult res = OrbitHelper.Classify(rdf, rf, model, Collections.singletonList(new Point(-1, -1)), -1, null); 
-    for (String name : res.getRatio().keySet()) {
-        println (name + ": " + res.getRatio().get(name));
-    }
+    //Run Classification
 
-    new File(it.path + "\\OUTPUT.txt").text = res.toString();
-    totalOutputFile.append(res.toString() + '\n');
+    println "Start Classification";
+    
+    ClassificationResult res = OrbitHelper.Classify(rdf, rf, model, Collections.singletonList(new Point(-1, -1)), -1, null); 
+    
+    resStr = imgPath + " :\n";
+    for (String name : res.getRatio().keySet()) {
+        resStr += (name + ": " + res.getRatio().get(name) + "\n");
+    }
+    
+    println resStr + "\n";
+
+    new File(it.path + "\\OUTPUT.txt").text = resStr;
+    totalOutputFile.append(resStr + '\n');
 
     /**
     * Saves a downscaled classification image to disk. Similar to "Tools->Save classification image" functionality.
@@ -73,7 +74,6 @@ topDir.eachDir{
     int width = 200;
     def fn = it.path + "\\OUTPUT.jpg";
 
-    
     final TiledImage classImg = rf.getClassImage().getImage();
     OrbitTiledImage2 mainImgTmp = rf.bimg.getImage();
     for (TiledImagePainter tip: rf.bimg.getMipMaps()) {
@@ -89,7 +89,6 @@ topDir.eachDir{
     println("writing")
     renderer.saveToDisk(bi, fn);
     println "Done with: " + it.path; //print elke folder in de topfolder
-
     }
 ip.close(); // close image provider connection
 
