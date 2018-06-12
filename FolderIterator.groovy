@@ -29,6 +29,9 @@ OrbitLogAppender.GUI_APPENDER = false;   // no GUI (error) popups
 topDirPath = 'C:\\Users\\dev\\Desktop\\Orbit batch test'
 totalOutputFile = new File(topDirPath + "\\OUTPUT_TOTAL.txt")
 def topDir = new File(topDirPath); //wijzig voor top folder
+if (!DALConfig.isLocalImageProvider()){
+  DALConfig.switchLocalRemoteImageProvider();
+}
 ip = DALConfig.getImageProvider(); //TODO: heeft dit ook een check nodig?
 topDir.eachDir{
     
