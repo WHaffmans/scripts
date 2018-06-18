@@ -1,11 +1,8 @@
 import static groovy.io.FileType.FILES
 import com.actelion.research.orbit.imageAnalysis.dal.DALConfig
-import com.actelion.research.orbit.imageAnalysis.utils.OrbitLogAppender
-import com.actelion.research.orbit.imageAnalysis.utils.OrbitHelper
-import com.actelion.research.orbit.imageAnalysis.utils.ClassImageRenderer
-import com.actelion.research.orbit.imageAnalysis.utils.OrbitTiledImage2
-import com.actelion.research.orbit.imageAnalysis.utils.TiledImagePainter
-import com.actelion.research.orbit.imageAnalysis.utils.ClassificationResult
+import com.actelion.research.orbit.imageAnalysis.utils.*
+
+import com.actelion.research.orbit.imageAnalysis.tasks.*
 import com.actelion.research.orbit.imageAnalysis.models.OrbitModel
 import com.actelion.research.orbit.imageAnalysis.components.RecognitionFrame
 import com.actelion.research.orbit.beans.RawDataFile
@@ -13,6 +10,8 @@ import javax.media.jai.TiledImage
 import java.awt.image.BufferedImage
 import java.awt.*
 import java.util.List
+
+
 
 //Parameters
 topDirPath = 'C:/Users/dev/Desktop/Orbit batch test';
@@ -51,9 +50,11 @@ topDir.eachDir{
     //ClassificationResult res = OrbitHelper.Classify(rdf, rf, model, Collections.singletonList(new Point(-1, -1)), -1, null); 
 
     exclusionMapGen = ExclusionMapGen.constructExclusionMap(rdf, rf, model, null)
+    ClassificationWorker( rdf,  rf,  model, true, exclusionMapGen, null)
     cw = ClassificationWorker( rdf,  rf,  model, true, exclusionMapGen, null) 
     cw.doWork();
-    
+    OrbitUtils.waitForWorker(cw);
+
     //Construct resultString resStr
     resStr = imgPath + " :\n";
     for (String name : res.getRatio().keySet()) {
