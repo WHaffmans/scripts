@@ -48,7 +48,11 @@ topDir.eachDir{
 
     //Run Classification
     println "Start Classification";
-    ClassificationResult res = OrbitHelper.Classify(rdf, rf, model, Collections.singletonList(new Point(-1, -1)), -1, null); 
+    //ClassificationResult res = OrbitHelper.Classify(rdf, rf, model, Collections.singletonList(new Point(-1, -1)), -1, null); 
+
+    exclusionMapGen = ExclusionMapGen.constructExclusionMap(rdf, rf, model, null)
+    cw = ClassificationWorker( rdf,  rf,  model, true, exclusionMapGen, null) 
+    cw.doWork();
     
     //Construct resultString resStr
     resStr = imgPath + " :\n";
