@@ -50,8 +50,7 @@ topDir.eachDir{
     //ClassificationResult res = OrbitHelper.Classify(rdf, rf, model, Collections.singletonList(new Point(-1, -1)), -1, null); 
 
     exclusionMapGen = ExclusionMapGen.constructExclusionMap(rdf, rf, model, null)
-    ClassificationWorker( rdf,  rf,  model, true, exclusionMapGen, null)
-    cw = ClassificationWorker( rdf,  rf,  model, true, exclusionMapGen, null) 
+    cw = new ClassificationWorker( rdf,  rf,  model, true, exclusionMapGen, null) 
     cw.doWork();
     OrbitUtils.waitForWorker(cw);
 
