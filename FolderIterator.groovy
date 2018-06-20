@@ -58,16 +58,13 @@ topDir.eachDir{
     cw = new ClassificationWorker( rdf,  rf,  model, true, exclusionMapGen, null) 
     println "start Worker"
     cw.doWork();
-    println "wait for worker"
-    OrbitUtils.waitForWorker(cw);
+    //println "wait for worker"
+    //OrbitUtils.waitForWorker(cw);
     println "Worker finished"
 
     //Construct resultString resStr
     resStr = imgPath + " :\n";
-    for (String name : res.getRatio().keySet()) {
-        resStr += (name + ": " + res.getRatio().get(name) + "\n");
-    }
-    
+    resStr += cw.getResultStr()
     //Print and accumulate results
     println "results:\n" + resStr + "\n";
     new File(it.path + outputFilename).text = resStr;
