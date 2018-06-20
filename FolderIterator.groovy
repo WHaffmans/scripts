@@ -1,7 +1,6 @@
 import static groovy.io.FileType.FILES
 import com.actelion.research.orbit.imageAnalysis.dal.DALConfig
 import com.actelion.research.orbit.imageAnalysis.utils.*
-
 import com.actelion.research.orbit.imageAnalysis.tasks.*
 import com.actelion.research.orbit.imageAnalysis.models.OrbitModel
 import com.actelion.research.orbit.imageAnalysis.components.RecognitionFrame
@@ -14,11 +13,11 @@ import java.util.List
 
 
 //Parameters
-topDirPath = 'C:/Users/dev/Desktop/Orbit batch test';
+topDirPath = 'C:/Users/willem/Desktop/Orbit batch test';
 totalOutputFilename = "/OUTPUT_TOTAL.txt";
 outputFilename = "/OUTPUT.txt";
 classImageFilename = "/OUTPUT.jpg";
-int outputWidth = 200;
+int outputWidth = 1024;
 OrbitLogAppender.GUI_APPENDER = false; // no GUI (error) popups
 
 totalOutputFile = new File(topDirPath + totalOutputFilename)
@@ -36,23 +35,32 @@ topDir.eachDir{
 
     //Get current model
     modelPath = ""
+    println "match model file"
     it.eachFileMatch ~/Classification met Ex.omo$/, {modelPath = it.path}  //TODO: check en log
+    println "load model"
     OrbitModel model = OrbitModel.LoadFromFile(modelPath); //try-catch?
 
     //Get current Image
     imgPath = ""
+    println "match image file"
     it.eachFileMatch ~/.*\.ndpi$/, {imgPath = it.path} //TODO: check en log
-    rdf = ip.registerFile(new File(imgPath), 1)
+    println "create RawDataFile"
+    rdf = ip.registerFile(new File(imgPath), 1);
+    println "create RecognitionFrame"
     RecognitionFrame rf = new RecognitionFrame(rdf);
 
     //Run Classification
-    println "Start Classification";
+    println "create exclusionMapGen";
     //ClassificationResult res = OrbitHelper.Classify(rdf, rf, model, Collections.singletonList(new Point(-1, -1)), -1, null); 
 
     exclusionMapGen = ExclusionMapGen.constructExclusionMap(rdf, rf, model, null)
+    println "create ClassificationWorker";
     cw = new ClassificationWorker( rdf,  rf,  model, true, exclusionMapGen, null) 
+    println "start Worker"
     cw.doWork();
+    println "wait for worker"
     OrbitUtils.waitForWorker(cw);
+    println "Worker finished"
 
     //Construct resultString resStr
     resStr = imgPath + " :\n";
@@ -61,15 +69,16 @@ topDir.eachDir{
     }
     
     //Print and accumulate results
-    println resStr + "\n";
+    println "results:\n" + resStr + "\n";
     new File(it.path + outputFilename).text = resStr;
     totalOutputFile.append(resStr + '\n');
 
+    println "constructClassificationImage"
     rf.constructClassificationImage();
 
     //Save ClassImage
     def fn = it.path + classImageFilename;
-
+    println("start loading classification image");
     final TiledImage classImg = rf.getClassImage().getImage();
     OrbitTiledImage2 mainImgTmp = rf.bimg.getImage();
     for (TiledImagePainter tip: rf.bimg.getMipMaps()) {
