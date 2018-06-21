@@ -64,7 +64,7 @@ topDir.eachDir{
 
     //Construct resultString resStr
     resStr = imgPath + " :\n";
-    resStr += cw.getResultStr()
+    resStr += cw.getTaskResult().toString()
     //Print and accumulate results
     println "results:\n" + resStr + "\n";
     new File(it.path + outputFilename).text = resStr;
