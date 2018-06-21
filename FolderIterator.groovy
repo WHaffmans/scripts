@@ -48,6 +48,9 @@ topDir.eachDir{
     rdf = ip.registerFile(new File(imgPath), 1);
     println "create RecognitionFrame"
     RecognitionFrame rf = new RecognitionFrame(rdf);
+    
+    rf.setModel(model);
+    rf.constructClassificationImage();
 
     //Run Classification
     println "create exclusionMapGen";
@@ -71,7 +74,7 @@ topDir.eachDir{
     totalOutputFile.append(resStr + '\n');
 
     println "constructClassificationImage"
-    rf.constructClassificationImage();
+    //rf.constructClassificationImage();
 
     //Save ClassImage
     def fn = it.path + classImageFilename;
