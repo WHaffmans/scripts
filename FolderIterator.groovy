@@ -13,7 +13,7 @@ import java.util.List
 
 
 //Parameters
-topDirPath = 'C:/Users/willem/Desktop/Orbit batch test';
+topDirPath = '/home/omero/testfiles';
 totalOutputFilename = "/OUTPUT_TOTAL.txt";
 outputFilename = "/OUTPUT.txt";
 classImageFilename = "/OUTPUT.jpg";
