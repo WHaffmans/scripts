@@ -45,7 +45,7 @@ topDir.eachDir{
     println "match image file"
     it.eachFileMatch ~/.*\.ndpi$/, {imgPath = it.path} //TODO: check en log
     println "create RawDataFile"
-    rdf = ip.registerFile(new File(imgPath), 0);
+    rdf = ip.registerFile(new File(imgPath), 2);
     println "create RecognitionFrame"
     RecognitionFrame rf = new RecognitionFrame(rdf);
     
