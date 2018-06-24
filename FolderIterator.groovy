@@ -13,7 +13,7 @@ import java.util.List
 
 
 //Parameters
-topDirPath = '/home/omero/testfiles';
+topDirPath = 'C:/Users/dev/Desktop/Orbit batch test';
 totalOutputFilename = "/OUTPUT_TOTAL.txt";
 outputFilename = "/OUTPUT.txt";
 classImageFilename = "/OUTPUT.jpg";
@@ -66,8 +66,9 @@ topDir.eachDir{
     println "Worker finished"
 
     //Construct resultString resStr
-    resStr = imgPath + " :\n";
-    resStr += cw.getTaskResult().toString()
+    resStr = "{\n\"";
+    resStr += cw.getTaskResult().toString().replaceAll('Classification Result: \n\nClass ratios','filename').replaceAll(':','\" : ').replaceAll('\n',',\n\"').replaceAll('[','\"').replaceAll(']','\"')
+    resStr += "}"
     //Print and accumulate results
     println "results:\n" + resStr + "\n";
     new File(it.path + outputFilename).text = resStr;
