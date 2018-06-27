@@ -13,7 +13,7 @@ import java.util.List
 
 
 //Parameters
-topDirPath = 'C:/Users/dev/Desktop/Orbit batch test';
+topDirPath = 'C:/Users/dev/Desktop/test';
 totalOutputFilename = "/OUTPUT_TOTAL.txt";
 outputFilename = "/OUTPUT.txt";
 classImageFilename = "/OUTPUT.jpg";
@@ -50,7 +50,9 @@ topDir.eachDir{
     RecognitionFrame rf = new RecognitionFrame(rdf);
     
     rf.setModel(model);
+    rf.loadImageScale(rdf.getRawDataFileId())
     rf.constructClassificationImage();
+    println rf.getMuMeterPerPixel() 
 
     //Run Classification
     println "create exclusionMapGen";
@@ -60,20 +62,24 @@ topDir.eachDir{
     println "create ClassificationWorker";
     cw = new ClassificationWorker( rdf,  rf,  model, true, exclusionMapGen, null) 
     println "start Worker"
+    cw.setDoNormalize(false)
     cw.doWork();
     //println "wait for worker"
     //OrbitUtils.waitForWorker(cw);
     println "Worker finished"
 
+    //println exclusionMapGen.getExclusionframe().getRatio()
+
     //Construct resultString resStr
     resStr = "{\n\"";
-    resStr += cw.getTaskResult().toString().replaceAll('Classification Result: \n\nClass ratios','filename').replaceAll(':','\" : ').replaceAll('\n',',\n\"').replaceAll('[','\"').replaceAll(']','\"')
+    resStr += cw.getTaskResult().toString()//.replaceAll('Classification Result: \n\nClass ratios','filename').replaceAll(':','\" : ').replaceAll('\n',',\n\"').replaceAll('[','\"').replaceAll(']','\"')
     resStr += "}"
     //Print and accumulate results
     println "results:\n" + resStr + "\n";
+
     new File(it.path + outputFilename).text = resStr;
     totalOutputFile.append(resStr + '\n');
-
+    if (false){
     println "constructClassificationImage"
     //rf.constructClassificationImage();
 
@@ -94,6 +100,7 @@ topDir.eachDir{
     BufferedImage bi = renderer.downsample(classImg, mainImg, outputWidth, height);
     println("writing")
     renderer.saveToDisk(bi, fn);
+    }
     println "Done with: " + it.path; //print elke folder in de topfolder
 }
     
