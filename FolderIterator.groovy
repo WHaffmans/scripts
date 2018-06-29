@@ -9,11 +9,12 @@ import javax.media.jai.TiledImage
 import java.awt.image.BufferedImage
 import java.awt.*
 import java.util.List
+import com.actelion.research.orbit.utils.RawUtilsCommon;
 
 
 
 //Parameters
-topDirPath = 'C:/Users/dev/Desktop/test';
+topDirPath = 'C:/Users/willem/Desktop/Orbit batch test';
 totalOutputFilename = "/OUTPUT_TOTAL.txt";
 outputFilename = "/OUTPUT.txt";
 classImageFilename = "/OUTPUT.jpg";
@@ -50,9 +51,12 @@ topDir.eachDir{
     RecognitionFrame rf = new RecognitionFrame(rdf);
     
     rf.setModel(model);
-    rf.loadImageScale(rdf.getRawDataFileId())
+    //println OrbitUtils.loadImageScale(rdf.getRawDataFileId())
+    rmList =  ip.LoadRawMetasByRawDataFile(rdf.getRawDataFileId())
+    mMeterPerPixel = rmList.find {it.name == "mMeterPerPixel"}.value.toDouble()
+    pixelArea = mMeterPerPixel * mMeterPerPixel
     rf.constructClassificationImage();
-    println rf.getMuMeterPerPixel() 
+   
 
     //Run Classification
     println "create exclusionMapGen";
@@ -72,7 +76,7 @@ topDir.eachDir{
 
     //Construct resultString resStr
     resStr = "{\n\"";
-    resStr += cw.getTaskResult().toString()//.replaceAll('Classification Result: \n\nClass ratios','filename').replaceAll(':','\" : ').replaceAll('\n',',\n\"').replaceAll('[','\"').replaceAll(']','\"')
+    resStr += cw.getTaskResult().toString().replaceAll('Classification Result: \n\nClass ratios','filename').replaceAll(':','\" : ').replaceAll('\n',',\n\"').replaceAll('\\[','\"').replaceAll('\\]','\"')
     resStr += "}"
     //Print and accumulate results
     println "results:\n" + resStr + "\n";
