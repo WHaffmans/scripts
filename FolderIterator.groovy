@@ -73,7 +73,7 @@ topDir.eachDir{
     resStr = "{\n  \"";
     resStr += cw.getTaskResult().toString().replaceAll('Classification Result: \n\nClass ratios','Filename').replaceAll(':','\" : ').replaceAll('\n',',\n  \"').replaceAll('\\[','\"').replaceAll('\\]','\"')
     resStr += ",\n  \"PixelArea\" : " + pixelArea + ",\n"
-    resStr += "  \"BL\" : " + imgPath.find('(?<=BL)_?\\d{1,3}') + "\n"
+    resStr += "  \"BL\" : " + imgPath.find('(?<=BL_?)\\d{1,3}') + "\n"
     resStr += "}"
     //Print and accumulate results
     println "results:\n" + resStr + "\n";
