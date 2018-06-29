@@ -53,16 +53,13 @@ topDir.eachDir{
     RecognitionFrame rf = new RecognitionFrame(rdf);
     
     rf.setModel(model);
-    //println OrbitUtils.loadImageScale(rdf.getRawDataFileId())
     rmList =  ip.LoadRawMetasByRawDataFile(rdf.getRawDataFileId())
     mMeterPerPixel = rmList.find {it.name == "mMeterPerPixel"}.value.toDouble()
     pixelArea = mMeterPerPixel * mMeterPerPixel
-    rf.constructClassificationImage();
+    rf.constructClassificationImage(); //maybe del?
    
     //Run Classification
     println "create exclusionMapGen";
-    //ClassificationResult res = OrbitHelper.Classify(rdf, rf, model, Collections.singletonList(new Point(-1, -1)), -1, null); 
-
     exclusionMapGen = ExclusionMapGen.constructExclusionMap(rdf, rf, model, null)
     println "create ClassificationWorker";
     cw = new ClassificationWorker( rdf,  rf,  model, true, exclusionMapGen, null) 
@@ -87,9 +84,6 @@ topDir.eachDir{
     }
     totalOutputFile.append(resStr + '\n');
     firstFile = false
- 
-    println "constructClassificationImage"
-    //rf.constructClassificationImage();
 
     //Save ClassImage
     def fn = it.path + classImageFilename;
