@@ -14,10 +14,11 @@ import com.actelion.research.orbit.utils.RawUtilsCommon;
 
 
 //Parameters
-topDirPath = 'C:/Users/willem/Desktop/test';
+topDirPath = 'C:/Users/dev/Desktop/test';
 totalOutputFilename = "/OUTPUT_TOTAL.json";
 outputFilename = "/OUTPUT.json";
 classImageFilename = "/OUTPUT.jpg";
+skipDone = true
 int outputWidth = 1024;
 OrbitLogAppender.GUI_APPENDER = false; // no GUI (error) popups
 
@@ -36,6 +37,16 @@ topDir.eachDir{
     //TODO: resultaat file aanwezig? skip werkt continue in een lambda?
     println "Enter Folder: " + it.path; //print elke folder in de topfolder
 
+     if(!firstFile){
+        totalOutputFile.append(",")
+    }
+    outputFile = new File(it.path + outputFilename)
+    if(outputFile.exists() && skipDone){
+        println "Output already exist, skipping..."
+        totalOutputFile.append(outputFile.text + '\n')
+        firstFile = false
+        return
+    }
     //Get current model
     modelPath = ""
     println "match model file"
@@ -78,10 +89,8 @@ topDir.eachDir{
     //Print and accumulate results
     println "results:\n" + resStr + "\n";
 
-    new File(it.path + outputFilename).text = resStr;
-    if(!firstFile){
-        totalOutputFile.append(",")
-    }
+    outputFile.text = resStr;
+   
     totalOutputFile.append(resStr + '\n');
     firstFile = false
 
