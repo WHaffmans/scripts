@@ -11,22 +11,23 @@ import java.awt.*
 import java.util.List
 import com.actelion.research.orbit.utils.RawUtilsCommon;
 
-
-
 //Parameters
-topDirPath = 'C:/Users/willem/Desktop/test';
+topDirPath = 'C:/Users/dev/Desktop/test';
 totalOutputFilename = "/OUTPUT_TOTAL.json";
 outputFilename = "/OUTPUT.json";
 classImageFilename = "/OUTPUT.jpg";
+skipDone = true
 int outputWidth = 1024;
 pixelFuzzyness = 0.999;
 OrbitLogAppender.GUI_APPENDER = false; // no GUI (error) popups
 
+startScriptTime = System.currentTimeMillis() 
 totalOutputFile = new File(topDirPath + totalOutputFilename)
 totalOutputFile.text = "["
 topDir = new File(topDirPath); 
 firstFile = true
-
+countDoneTotal = 0
+countDoneThisRun = 0
 //Switch to Local Image provider
 if (!DALConfig.isLocalImageProvider()){
     DALConfig.switchLocalRemoteImageProvider();
@@ -34,14 +35,25 @@ if (!DALConfig.isLocalImageProvider()){
 ip = DALConfig.getImageProvider(); //TODO: heeft dit ook een check nodig?
 
 topDir.eachDir{
-    //TODO: resultaat file aanwezig? skip werkt continue in een lambda?
-    println "Enter Folder: " + it.path; //print elke folder in de topfolder
+    countDoneTotal++
+    startFolderTime = System.currentTimeMillis() 
+    println "Enter Folder number " + countDoneTotal +  " ("+ (startFolderTime - startScriptTime)/1000 +"):\n" + it.path; //print elke folder in de topfolder
 
+    if(!firstFile){
+        totalOutputFile.append(",")
+    }
+    outputFile = new File(it.path + outputFilename)
+    if(outputFile.exists() && skipDone){
+        println "Output file already exists, skipping..."
+        totalOutputFile.append(outputFile.text + '\n')
+        firstFile = false
+        return
+    }
     //Get current model
     modelPath = ""
     println "match model file"
     it.eachFileMatch ~/Classification met Ex.omo$/, {modelPath = it.path}  //TODO: check en log
-    println "load model"
+    println "load model: " + modelPath
     OrbitModel model = OrbitModel.LoadFromFile(modelPath); //try-catch?
 
     //Get current Image
@@ -80,10 +92,8 @@ topDir.eachDir{
     //Print and accumulate results
     println "results:\n" + resStr + "\n";
 
-    new File(it.path + outputFilename).text = resStr;
-    if(!firstFile){
-        totalOutputFile.append(",")
-    }
+    outputFile.text = resStr;
+   
     totalOutputFile.append(resStr + '\n');
     firstFile = false
 
@@ -105,12 +115,15 @@ topDir.eachDir{
     println("writing")
     renderer.saveToDisk(bi, fn);
 
-    println "Done with: " + it.path; //print elke folder in de topfolder
     OrbitUtils.cleanUpTemp(); //Cleanup temp folder   
     println "Temp files cleaned";
     
+    countDoneThisRun++
+    println "Done with image " + countDoneThisRun + ": " + it.path; //print elke folder in de topfolder
 }
-totalOutputFile.append("]")   
+totalOutputFile.append("]") 
+println "Run completed with " + countDoneTotal + " classifications and " + countDoneThisRun + " results written in " + (startFolderTime - startScriptTime)/1000 + " seconds."
+
 ip.close(); // close image provider connection
 
 
