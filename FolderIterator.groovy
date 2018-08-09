@@ -19,6 +19,7 @@ totalOutputFilename = "/OUTPUT_TOTAL.json";
 outputFilename = "/OUTPUT.json";
 classImageFilename = "/OUTPUT.jpg";
 int outputWidth = 1024;
+pixelFuzzyness = 0.999;
 OrbitLogAppender.GUI_APPENDER = false; // no GUI (error) popups
 
 totalOutputFile = new File(topDirPath + totalOutputFilename)
@@ -63,8 +64,9 @@ topDir.eachDir{
     exclusionMapGen = ExclusionMapGen.constructExclusionMap(rdf, rf, model, null)
     println "create ClassificationWorker";
     cw = new ClassificationWorker( rdf,  rf,  model, true, exclusionMapGen, null) 
-    println "start Worker"
-    cw.setDoNormalize(false)
+    println "start Worker";
+    cw.setPixelFuzzyness(pixelFuzzyness);
+    cw.setDoNormalize(false);
     cw.doWork();
 
     println "Worker finished"
@@ -73,7 +75,7 @@ topDir.eachDir{
     resStr = "{\n  \"";
     resStr += cw.getTaskResult().toString().replaceAll('Classification Result: \n\nClass ratios','Filename').replaceAll(':','\" : ').replaceAll('\n',',\n  \"').replaceAll('\\[','\"').replaceAll('\\]','\"')
     resStr += ",\n  \"PixelArea\" : " + pixelArea + ",\n"
-    resStr += "  \"BL\" : " + imgPath.find('(?<=BL_?)\\d{1,3}') + "\n"
+    resStr += "  \"BL\" : " + imgPath.find('(?<=BL_?)\\d{1,4}') + "\n"
     resStr += "}"
     //Print and accumulate results
     println "results:\n" + resStr + "\n";
@@ -104,6 +106,9 @@ topDir.eachDir{
     renderer.saveToDisk(bi, fn);
 
     println "Done with: " + it.path; //print elke folder in de topfolder
+    OrbitUtils.cleanUpTemp(); //Cleanup temp folder   
+    println "Temp files cleaned";
+    
 }
 totalOutputFile.append("]")   
 ip.close(); // close image provider connection
