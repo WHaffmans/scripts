@@ -13,9 +13,9 @@ import com.actelion.research.orbit.utils.RawUtilsCommon;
 
 //Parameters
 topDirPath = 'C:/Users/dev/Desktop/test';
-totalOutputFilename = "/OUTPUT_TOTAL.json";
-outputFilename = "/OUTPUT.json";
-classImageFilename = "/OUTPUT.jpg";
+totalOutputFilename = "/OUTPUT_TOTAL_losmazig.json";
+outputFilename = "/OUTPUT_losmazig.json";
+classImageFilename = "/OUTPUT_losmazig.jpg";
 skipDone = true
 int outputWidth = 1024;
 pixelFuzzyness = 0.999;
@@ -52,7 +52,7 @@ topDir.eachDir{
     //Get current model
     modelPath = ""
     println "match model file"
-    it.eachFileMatch ~/Classification met Ex.omo$/, {modelPath = it.path}  //TODO: check en log
+    topDir.eachFileMatch ~/losmazig.omo$/, {modelPath = it.path}  //TODO: check en log
     println "load model: " + modelPath
     OrbitModel model = OrbitModel.LoadFromFile(modelPath); //try-catch?
 
@@ -69,6 +69,7 @@ topDir.eachDir{
     rmList =  ip.LoadRawMetasByRawDataFile(rdf.getRawDataFileId())
     mMeterPerPixel = rmList.find {it.name == "mMeterPerPixel"}.value.toDouble()
     pixelArea = mMeterPerPixel * mMeterPerPixel
+    
     rf.constructClassificationImage(); //maybe del?
    
     //Run Classification
@@ -101,6 +102,7 @@ topDir.eachDir{
     def fn = it.path + classImageFilename;
     println("start loading classification image");
     final TiledImage classImg = rf.getClassImage().getImage();
+    outputWidth = ((mMeterPerPixel/0.228)/11)*classImg.getWidth());
     OrbitTiledImage2 mainImgTmp = rf.bimg.getImage();
     for (TiledImagePainter tip: rf.bimg.getMipMaps()) {
         // find a good resolution size
