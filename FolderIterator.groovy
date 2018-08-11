@@ -17,7 +17,7 @@ totalOutputFilename = "/OUTPUT_TOTAL.json";
 outputFilename = "/OUTPUT.json";
 classImageFilename = "/OUTPUT.jpg";
 skipDone = true
-int outputWidth = 1024;
+//int outputWidth = 1024;
 pixelFuzzyness = 0.999;
 OrbitLogAppender.GUI_APPENDER = false; // no GUI (error) popups
 
@@ -101,6 +101,7 @@ topDir.eachDir{
     def fn = it.path + classImageFilename;
     println("start loading classification image");
     final TiledImage classImg = rf.getClassImage().getImage();
+    outputWidth = ((mMeterPerPixel/0.228)/11)*classImg.getWidth());
     OrbitTiledImage2 mainImgTmp = rf.bimg.getImage();
     for (TiledImagePainter tip: rf.bimg.getMipMaps()) {
         // find a good resolution size
