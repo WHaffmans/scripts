@@ -17,7 +17,7 @@ import com.actelion.research.orbit.utils.RawUtilsCommon;
 topDirPath = 'C:/Users/dev/Desktop/test3';
 totalOutputFilename = "/OUTPUT_TOTAL.json";
 outputFilename = "/OUTPUT.json";
-classImageFilename = "/OUTPUT.jpg";
+classImageFilename = "/OUTPUT";
 skipDone = true
 useROI = true
 classImgFactor = 16
@@ -107,7 +107,7 @@ topDir.eachDir{
 
 
             //Save ClassImage
-            def fn = path + classImageFilename + "ROI" + roiNumber;
+            def fn = path + classImageFilename + "_ROI_" + roiNumber + ".jpg";
             println("start loading classification image");
             final TiledImage classImg = rf.getClassImage().getImage();
             scale = (mMeterPerPixel / 0.228)
@@ -126,8 +126,8 @@ topDir.eachDir{
             BufferedImage bi = renderer.downsample(classImg, mainImg, outputWidth, height);
             println("writing")
             renderer.saveToDisk(bi, fn);
+            
             roiNumber++
-
         }
 
         resStr = resStr[0..-3]
@@ -139,8 +139,6 @@ topDir.eachDir{
     
         totalOutputFile.append(resStr + '\n');
         firstFile = false
-
-
         OrbitUtils.cleanUpTemp(); //Cleanup temp folder   
         println "Temp files cleaned";
         
