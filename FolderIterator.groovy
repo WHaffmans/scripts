@@ -75,7 +75,7 @@ topDir.eachDir{
     rawAnno = ip.LoadRawAnnotationsByRawDataFile(rdf.rawDataFileId, RawAnnotation.ANNOTATION_TYPE_IMAGE)[0]
     if(rawAnno != null){
         anno = new ImageAnnotation(rawAnno);
-        rf.setRoi(anno.getFirstShape());
+        rf.setROI(anno.getFirstShape());
         println "Using ROI: \n" + anno.toString()
     } else{
         println "No ROI found"
