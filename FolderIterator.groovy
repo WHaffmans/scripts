@@ -79,6 +79,7 @@ topDir.eachDir{
     exclusionMapGen = ExclusionMapGen.constructExclusionMap(rdf, rf, model, null)
     resStr = ""
     roiNumber = 1
+    path = it.path
     if((rawAnno[0] != null) && useROI){
         rawAnno.each{
             anno = new ImageAnnotation(it);
@@ -102,12 +103,34 @@ topDir.eachDir{
             resStr += ",\n  \"PixelArea\" : " + pixelArea + ",\n"
             resStr += "  \"BL\" : " + imgPath.find('(?<=BL_?)\\d{1,4}') + ",\n"
             resStr += "  \"ROI\" : " + roiNumber + "\n"
-            resStr += "}"
+            resStr += "},\n"
 
+
+            //Save ClassImage
+            def fn = path + classImageFilename + "ROI" + roiNumber;
+            println("start loading classification image");
+            final TiledImage classImg = rf.getClassImage().getImage();
+            scale = (mMeterPerPixel / 0.228)
+            outputWidth = (int) (scale * (classImg.getWidth() / classImgFactor) + 0.5d);
+            println "outputWidth = " + outputWidth
+            OrbitTiledImage2 mainImgTmp = rf.bimg.getImage();
+            for (TiledImagePainter tip: rf.bimg.getMipMaps()) {
+                // find a good resolution size
+                if (tip.getWidth()>outputWidth)
+                    mainImgTmp = tip.getImage();
+            }
+            final OrbitTiledImage2 mainImg = mainImgTmp;
+            ClassImageRenderer renderer = new ClassImageRenderer();
+            int height = (int) (classImg.getHeight() * (outputWidth / (double) classImg.getWidth()));
+            println("start saving classification image to disk");
+            BufferedImage bi = renderer.downsample(classImg, mainImg, outputWidth, height);
+            println("writing")
+            renderer.saveToDisk(bi, fn);
             roiNumber++
+
         }
 
-        resStr.replaceAll("\\}\\{","},{")
+        resStr = resStr[0..-3]
 
         //Print and accumulate results
         println "results:\n" + resStr + "\n";
@@ -117,26 +140,6 @@ topDir.eachDir{
         totalOutputFile.append(resStr + '\n');
         firstFile = false
 
-        //Save ClassImage
-        def fn = it.path + classImageFilename;
-        println("start loading classification image");
-        final TiledImage classImg = rf.getClassImage().getImage();
-        scale = (mMeterPerPixel / 0.228)
-        outputWidth = (int) (scale * (classImg.getWidth() / classImgFactor) + 0.5d);
-        println "outputWidth = " + outputWidth
-        OrbitTiledImage2 mainImgTmp = rf.bimg.getImage();
-        for (TiledImagePainter tip: rf.bimg.getMipMaps()) {
-            // find a good resolution size
-            if (tip.getWidth()>outputWidth)
-                mainImgTmp = tip.getImage();
-        }
-        final OrbitTiledImage2 mainImg = mainImgTmp;
-        ClassImageRenderer renderer = new ClassImageRenderer();
-        int height = (int) (classImg.getHeight() * (outputWidth / (double) classImg.getWidth()));
-        println("start saving classification image to disk");
-        BufferedImage bi = renderer.downsample(classImg, mainImg, outputWidth, height);
-        println("writing")
-        renderer.saveToDisk(bi, fn);
 
         OrbitUtils.cleanUpTemp(); //Cleanup temp folder   
         println "Temp files cleaned";
