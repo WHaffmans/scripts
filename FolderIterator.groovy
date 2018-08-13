@@ -83,7 +83,7 @@ topDir.eachDir{
     if(rawAnno != null){
         anno = new ImageAnnotation(rawAnno);
         cw.setRoi(anno.getFirstShape());
-        println "Using ROI"
+        println "Using ROI: \n" + anno.toString()
     } else{
         println "No ROI found"
     }
