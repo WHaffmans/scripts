@@ -74,33 +74,45 @@ topDir.eachDir{
     mMeterPerPixel = rmList.find {it.name == "mMeterPerPixel"}.value.toDouble()
     pixelArea = mMeterPerPixel * mMeterPerPixel
     rf.constructClassificationImage(); //maybe del?
-    rawAnno = ip.LoadRawAnnotationsByRawDataFile(rdf.rawDataFileId, RawAnnotation.ANNOTATION_TYPE_IMAGE)[0]
-    if((rawAnno != null) && useROI){
-        anno = new ImageAnnotation(rawAnno);
-        rf.setROI(anno.getFirstShape());
-        println "Using ROI: \n" + anno.toString()
-    } else{
-        println "No ROI found"
-    }
-    //Run Classification
+    rawAnno = ip.LoadRawAnnotationsByRawDataFile(rdf.rawDataFileId, RawAnnotation.ANNOTATION_TYPE_IMAGE)    
     println "create exclusionMapGen";
     exclusionMapGen = ExclusionMapGen.constructExclusionMap(rdf, rf, model, null)
-    println "create ClassificationWorker";
-    cw = new ClassificationWorker( rdf,  rf,  model, true, exclusionMapGen, null) 
-    println "start Worker";
-    println "ROI: " + cw.getRoi().toString()
-    cw.setPixelFuzzyness(pixelFuzzyness);
-    cw.setDoNormalize(false);
-    cw.doWork();
+    resStr = ""
+    roiNumber = 1
+    if((rawAnno != null) && useROI){
+        rawAnno.each{
+            anno = new ImageAnnotation(it);
+            rf.setROI(anno.getFirstShape());
+            println "Using ROI: \n" + anno.toString()  
+                //Run Classification
 
-    println "Worker finished"
+            println "create ClassificationWorker";
+            cw = new ClassificationWorker( rdf,  rf,  model, true, exclusionMapGen, null) 
+            println "start Worker";
+            println "ROI: " + cw.getRoi().toString()
+            cw.setPixelFuzzyness(pixelFuzzyness);
+            cw.setDoNormalize(false);
+            cw.doWork();
 
-    //Construct resultString resStr
-    resStr = "{\n  \"";
-    resStr += cw.getTaskResult().toString().replaceAll('Classification Result: \n\nClass ratios','Filename').replaceAll(':','\" : ').replaceAll('\n',',\n  \"').replaceAll('\\[','\"').replaceAll('\\]','\"')
-    resStr += ",\n  \"PixelArea\" : " + pixelArea + ",\n"
-    resStr += "  \"BL\" : " + imgPath.find('(?<=BL_?)\\d{1,4}') + "\n"
-    resStr += "}"
+            println "Worker finished"
+
+            //Construct resultString resStr
+            resStr += "{\n  \"";
+            resStr += cw.getTaskResult().toString().replaceAll('Classification Result: \n\nClass ratios','Filename').replaceAll(':','\" : ').replaceAll('\n',',\n  \"').replaceAll('\\[','\"').replaceAll('\\]','\"')
+            resStr += ",\n  \"PixelArea\" : " + pixelArea + ",\n"
+            resStr += "  \"BL\" : " + imgPath.find('(?<=BL_?)\\d{1,4}') + ",\n"
+            resStr += "\"ROI\" : " + roiNumber + "\n"
+            resStr += "}"
+
+            roiNumber++
+        }
+        
+    } else{
+        println "No ROI found"
+        return
+    }
+    resStr.replaceAll("}{","},{")
+
     //Print and accumulate results
     println "results:\n" + resStr + "\n";
 
