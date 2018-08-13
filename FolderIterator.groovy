@@ -72,21 +72,21 @@ topDir.eachDir{
     mMeterPerPixel = rmList.find {it.name == "mMeterPerPixel"}.value.toDouble()
     pixelArea = mMeterPerPixel * mMeterPerPixel
     rf.constructClassificationImage(); //maybe del?
-   
+    rawAnno = ip.LoadRawAnnotationsByRawDataFile(rdf.rawDataFileId, RawAnnotation.ANNOTATION_TYPE_IMAGE)[0]
+    if(rawAnno != null){
+        anno = new ImageAnnotation(rawAnno);
+        rf.setRoi(anno.getFirstShape());
+        println "Using ROI: \n" + anno.toString()
+    } else{
+        println "No ROI found"
+    }
     //Run Classification
     println "create exclusionMapGen";
     exclusionMapGen = ExclusionMapGen.constructExclusionMap(rdf, rf, model, null)
     println "create ClassificationWorker";
     cw = new ClassificationWorker( rdf,  rf,  model, true, exclusionMapGen, null) 
     println "start Worker";
-    rawAnno = ip.LoadRawAnnotationsByRawDataFile(rdf.rawDataFileId, RawAnnotation.ANNOTATION_TYPE_IMAGE)[0]
-    if(rawAnno != null){
-        anno = new ImageAnnotation(rawAnno);
-        cw.setRoi(anno.getFirstShape());
-        println "Using ROI: \n" + anno.toString()
-    } else{
-        println "No ROI found"
-    }
+    println "ROI: " + cw.getRoi().toString()
     cw.setPixelFuzzyness(pixelFuzzyness);
     cw.setDoNormalize(false);
     cw.doWork();
