@@ -62,7 +62,7 @@ topDir.eachDir{
     it.eachFileMatch ~/.*\.ndpi$/, {imgPath = it.path} //TODO: check en log
     println "create RawDataFile"
     rdf = ip.registerFile(new File(imgPath), 0);
-    println "create RecognitionFrame"
+    println "create RecognitionFrame with rdfId = " + rdf.getRawDataFileId()
     RecognitionFrame rf = new RecognitionFrame(rdf);
     
     rf.setModel(model);
@@ -101,7 +101,9 @@ topDir.eachDir{
     def fn = it.path + classImageFilename;
     println("start loading classification image");
     final TiledImage classImg = rf.getClassImage().getImage();
-    outputWidth = ((mMeterPerPixel/0.228)/11)*classImg.getWidth());
+    scale = (mMeterPerPixel / 0.228)
+    outputWidth = (int) (scale * (classImg.getWidth() / 11) + 0.5d);
+    println "outputWidth = " + outputWidth
     OrbitTiledImage2 mainImgTmp = rf.bimg.getImage();
     for (TiledImagePainter tip: rf.bimg.getMipMaps()) {
         // find a good resolution size
