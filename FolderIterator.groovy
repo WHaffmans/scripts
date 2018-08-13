@@ -19,8 +19,10 @@ totalOutputFilename = "/OUTPUT_TOTAL.json";
 outputFilename = "/OUTPUT.json";
 classImageFilename = "/OUTPUT.jpg";
 skipDone = true
+useROI = true
+classImgFactor = 16
 //int outputWidth = 1024;
-pixelFuzzyness = 0.999;
+pixelFuzzyness = 0d;
 OrbitLogAppender.GUI_APPENDER = false; // no GUI (error) popups
 
 startScriptTime = System.currentTimeMillis() 
@@ -73,7 +75,7 @@ topDir.eachDir{
     pixelArea = mMeterPerPixel * mMeterPerPixel
     rf.constructClassificationImage(); //maybe del?
     rawAnno = ip.LoadRawAnnotationsByRawDataFile(rdf.rawDataFileId, RawAnnotation.ANNOTATION_TYPE_IMAGE)[0]
-    if(rawAnno != null){
+    if((rawAnno != null) && useROI){
         anno = new ImageAnnotation(rawAnno);
         rf.setROI(anno.getFirstShape());
         println "Using ROI: \n" + anno.toString()
@@ -112,7 +114,7 @@ topDir.eachDir{
     println("start loading classification image");
     final TiledImage classImg = rf.getClassImage().getImage();
     scale = (mMeterPerPixel / 0.228)
-    outputWidth = (int) (scale * (classImg.getWidth() / 11) + 0.5d);
+    outputWidth = (int) (scale * (classImg.getWidth() / classImgFactor) + 0.5d);
     println "outputWidth = " + outputWidth
     OrbitTiledImage2 mainImgTmp = rf.bimg.getImage();
     for (TiledImagePainter tip: rf.bimg.getMipMaps()) {
