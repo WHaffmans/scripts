@@ -3,8 +3,10 @@ import com.actelion.research.orbit.imageAnalysis.dal.DALConfig
 import com.actelion.research.orbit.imageAnalysis.utils.*
 import com.actelion.research.orbit.imageAnalysis.tasks.*
 import com.actelion.research.orbit.imageAnalysis.models.OrbitModel
+import com.actelion.research.orbit.imageAnalysis.models.ImageAnnotation
 import com.actelion.research.orbit.imageAnalysis.components.RecognitionFrame
 import com.actelion.research.orbit.beans.RawDataFile
+import com.actelion.research.orbit.beans.RawAnnotation
 import javax.media.jai.TiledImage
 import java.awt.image.BufferedImage
 import java.awt.*
@@ -12,7 +14,7 @@ import java.util.List
 import com.actelion.research.orbit.utils.RawUtilsCommon;
 
 //Parameters
-topDirPath = 'C:/Users/dev/Desktop/test';
+topDirPath = 'C:/Users/dev/Desktop/test3';
 totalOutputFilename = "/OUTPUT_TOTAL.json";
 outputFilename = "/OUTPUT.json";
 classImageFilename = "/OUTPUT.jpg";
@@ -77,6 +79,14 @@ topDir.eachDir{
     println "create ClassificationWorker";
     cw = new ClassificationWorker( rdf,  rf,  model, true, exclusionMapGen, null) 
     println "start Worker";
+    rawAnno = ip.LoadRawAnnotationsByRawDataFile(rdf.rawDataFileId, RawAnnotation.ANNOTATION_TYPE_IMAGE)[0]
+    if(rawAnno != null){
+        anno = new ImageAnnotation(rawAnno);
+        cw.setRoi(anno.getFirstShape());
+        println "Using ROI"
+    } else{
+        println "No ROI found"
+    }
     cw.setPixelFuzzyness(pixelFuzzyness);
     cw.setDoNormalize(false);
     cw.doWork();
