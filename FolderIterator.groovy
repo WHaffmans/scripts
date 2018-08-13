@@ -79,7 +79,7 @@ topDir.eachDir{
     exclusionMapGen = ExclusionMapGen.constructExclusionMap(rdf, rf, model, null)
     resStr = ""
     roiNumber = 1
-    if((rawAnno != null) && useROI){
+    if((rawAnno[0] != null) && useROI){
         rawAnno.each{
             anno = new ImageAnnotation(it);
             rf.setROI(anno.getFirstShape());
@@ -101,7 +101,7 @@ topDir.eachDir{
             resStr += cw.getTaskResult().toString().replaceAll('Classification Result: \n\nClass ratios','Filename').replaceAll(':','\" : ').replaceAll('\n',',\n  \"').replaceAll('\\[','\"').replaceAll('\\]','\"')
             resStr += ",\n  \"PixelArea\" : " + pixelArea + ",\n"
             resStr += "  \"BL\" : " + imgPath.find('(?<=BL_?)\\d{1,4}') + ",\n"
-            resStr += "\"ROI\" : " + roiNumber + "\n"
+            resStr += "  \"ROI\" : " + roiNumber + "\n"
             resStr += "}"
 
             roiNumber++
