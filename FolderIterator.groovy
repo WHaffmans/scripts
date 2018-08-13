@@ -106,47 +106,49 @@ topDir.eachDir{
 
             roiNumber++
         }
+
+        resStr.replaceAll("\\}\\{","},{")
+
+        //Print and accumulate results
+        println "results:\n" + resStr + "\n";
+
+        outputFile.text = resStr;
+    
+        totalOutputFile.append(resStr + '\n');
+        firstFile = false
+
+        //Save ClassImage
+        def fn = it.path + classImageFilename;
+        println("start loading classification image");
+        final TiledImage classImg = rf.getClassImage().getImage();
+        scale = (mMeterPerPixel / 0.228)
+        outputWidth = (int) (scale * (classImg.getWidth() / classImgFactor) + 0.5d);
+        println "outputWidth = " + outputWidth
+        OrbitTiledImage2 mainImgTmp = rf.bimg.getImage();
+        for (TiledImagePainter tip: rf.bimg.getMipMaps()) {
+            // find a good resolution size
+            if (tip.getWidth()>outputWidth)
+                mainImgTmp = tip.getImage();
+        }
+        final OrbitTiledImage2 mainImg = mainImgTmp;
+        ClassImageRenderer renderer = new ClassImageRenderer();
+        int height = (int) (classImg.getHeight() * (outputWidth / (double) classImg.getWidth()));
+        println("start saving classification image to disk");
+        BufferedImage bi = renderer.downsample(classImg, mainImg, outputWidth, height);
+        println("writing")
+        renderer.saveToDisk(bi, fn);
+
+        OrbitUtils.cleanUpTemp(); //Cleanup temp folder   
+        println "Temp files cleaned";
+        
+        countDoneThisRun++
+        println "Done with image " + countDoneThisRun + ": " + it.path; //print elke folder in de topfolder
         
     } else{
         println "No ROI found"
         return
     }
-    resStr.replaceAll("}{","},{")
-
-    //Print and accumulate results
-    println "results:\n" + resStr + "\n";
-
-    outputFile.text = resStr;
-   
-    totalOutputFile.append(resStr + '\n');
-    firstFile = false
-
-    //Save ClassImage
-    def fn = it.path + classImageFilename;
-    println("start loading classification image");
-    final TiledImage classImg = rf.getClassImage().getImage();
-    scale = (mMeterPerPixel / 0.228)
-    outputWidth = (int) (scale * (classImg.getWidth() / classImgFactor) + 0.5d);
-    println "outputWidth = " + outputWidth
-    OrbitTiledImage2 mainImgTmp = rf.bimg.getImage();
-    for (TiledImagePainter tip: rf.bimg.getMipMaps()) {
-        // find a good resolution size
-        if (tip.getWidth()>outputWidth)
-            mainImgTmp = tip.getImage();
-    }
-    final OrbitTiledImage2 mainImg = mainImgTmp;
-    ClassImageRenderer renderer = new ClassImageRenderer();
-    int height = (int) (classImg.getHeight() * (outputWidth / (double) classImg.getWidth()));
-    println("start saving classification image to disk");
-    BufferedImage bi = renderer.downsample(classImg, mainImg, outputWidth, height);
-    println("writing")
-    renderer.saveToDisk(bi, fn);
-
-    OrbitUtils.cleanUpTemp(); //Cleanup temp folder   
-    println "Temp files cleaned";
     
-    countDoneThisRun++
-    println "Done with image " + countDoneThisRun + ": " + it.path; //print elke folder in de topfolder
 }
 totalOutputFile.append("]") 
 println "Run completed with " + countDoneTotal + " classifications and " + countDoneThisRun + " results written in " + (startFolderTime - startScriptTime)/1000 + " seconds."
