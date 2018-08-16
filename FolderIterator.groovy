@@ -83,7 +83,8 @@ topDir.eachDir{
     if((rawAnno[0] != null) && useROI){
         rawAnno.each{
             anno = new ImageAnnotation(it);
-            rf.setROI(anno.getFirstShape());
+            roi = anno.getFirstShape()
+            rf.setROI(roi);
             println "Using ROI: \n" + anno.toString()  
                 //Run Classification
 
@@ -108,24 +109,34 @@ topDir.eachDir{
 
             //Save ClassImage
             def fn = path + classImageFilename + "_ROI_" + roiNumber + ".jpg";
-            println("start loading classification image");
-            final TiledImage classImg = rf.getClassImage().getImage();
-            scale = (mMeterPerPixel / 0.228)
-            outputWidth = (int) (scale * (classImg.getWidth() / classImgFactor) + 0.5d);
-            println "outputWidth = " + outputWidth
-            OrbitTiledImage2 mainImgTmp = rf.bimg.getImage();
-            for (TiledImagePainter tip: rf.bimg.getMipMaps()) {
-                // find a good resolution size
-                if (tip.getWidth()>outputWidth)
-                    mainImgTmp = tip.getImage();
-            }
-            final OrbitTiledImage2 mainImg = mainImgTmp;
+            Rectangle bBox = roi.getBounds();
+            println bBox;
+            
+            TiledImage classImg = rf.getClassImage().getImage();
+            //OrbitTiledImage2 mainImgTmp = rf.bimg.getImage();
+            classImgSub = classImg.getSubImage(bBox.x,bBox.y,bBox.width,bBox.height);
             ClassImageRenderer renderer = new ClassImageRenderer();
-            int height = (int) (classImg.getHeight() * (outputWidth / (double) classImg.getWidth()));
-            println("start saving classification image to disk");
-            BufferedImage bi = renderer.downsample(classImg, mainImg, outputWidth, height);
-            println("writing")
-            renderer.saveToDisk(bi, fn);
+            renderer.saveToDisk(classImg, fn);
+
+
+            // println("start loading classification image");
+            // final TiledImage classImg = rf.getClassImage().getImage();
+            // scale = (mMeterPerPixel / 0.228)
+            // outputWidth = (int) (scale * (classImg.getWidth() / classImgFactor) + 0.5d);
+            // println "outputWidth = " + outputWidth
+            // OrbitTiledImage2 mainImgTmp = rf.bimg.getImage();
+            // for (TiledImagePainter tip: rf.bimg.getMipMaps()) {
+            //     // find a good resolution size
+            //     if (tip.getWidth()>outputWidth)
+            //         mainImgTmp = tip.getImage();
+            // }
+            // final OrbitTiledImage2 mainImg = mainImgTmp;
+            // ClassImageRenderer renderer = new ClassImageRenderer();
+            // int height = (int) (classImg.getHeight() * (outputWidth / (double) classImg.getWidth()));
+            // println("start saving classification image to disk");
+            // BufferedImage bi = renderer.downsample(classImg, mainImg, outputWidth, height);
+            // println("writing")
+            // renderer.saveToDisk(bi, fn);
             
             roiNumber++
         }
