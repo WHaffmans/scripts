@@ -84,6 +84,7 @@ topDir.eachDir{
         rawAnno.each{
             anno = new ImageAnnotation(it);
             roi = anno.getFirstShape()
+            roi = roi.getScaledInstance(100d, new Point(0, 0))
             rf.setROI(roi);
             println "Using ROI: \n" + anno.toString()  
                 //Run Classification
