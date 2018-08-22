@@ -25,7 +25,7 @@ import java.io.File;
 import java.io.IOException;
 
 //Parameters
-topDirPath = '/home/willem/dev/test';
+topDirPath = 'C:\\Users\\Hajo\\Desktop\\Orbit batch test';
 totalOutputFilename = "/OUTPUT_TOTAL.json";
 outputFilename = "/OUTPUT.json";
 classImageFilename = "/OUTPUT";
@@ -125,12 +125,12 @@ topDir.eachDir{
             println bBox;
             
             TiledImage classImg = rf.getClassImage().getImage();
-            bi =  new BufferedImage((int)bBox.width,(int) bBox.height, BufferedImage.TYPE_INT_RGB)
+            bi =  new BufferedImage((int)(bBox.width/classImgFactor),(int) (bBox.height/classImgFactor), BufferedImage.TYPE_INT_RGB)
             WritableRaster r = bi.getRaster();
-            for (int x = 0; x <  bBox.width; x++){
-			for (int y = 0; y <  bBox.height; y++){
-            		int ox = x + (int) bBox.x
-            		int oy = y + (int) bBox.y
+            for (int x = 0; x <  bi.width; x++){
+			for (int y = 0; y <  bi.height; y++){
+            		int ox = x*classImgFactor + (int) bBox.x
+            		int oy = y*classImgFactor + (int) bBox.y
             		for(int c = 0; c<3;c++){
                 		r.setSample(x,y,c,classImg.getSample(ox,oy,c))
                 	}
@@ -193,6 +193,4 @@ totalOutputFile.append("]")
 println "Run completed with " + countDoneTotal + " classifications and " + countDoneThisRun + " results written in " + (startFolderTime - startScriptTime)/1000 + " seconds."
 
 ip.close(); // close image provider connection
-
-
 
