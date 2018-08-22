@@ -2,23 +2,34 @@ import static groovy.io.FileType.FILES
 import com.actelion.research.orbit.imageAnalysis.dal.DALConfig
 import com.actelion.research.orbit.imageAnalysis.utils.*
 import com.actelion.research.orbit.imageAnalysis.tasks.*
+import com.actelion.research.orbit.imageAnalysis.models.*
 import com.actelion.research.orbit.imageAnalysis.models.OrbitModel
 import com.actelion.research.orbit.imageAnalysis.models.ImageAnnotation
 import com.actelion.research.orbit.imageAnalysis.components.RecognitionFrame
 import com.actelion.research.orbit.beans.RawDataFile
 import com.actelion.research.orbit.beans.RawAnnotation
 import javax.media.jai.TiledImage
+import javax.media.jai.JAI;
 import java.awt.image.BufferedImage
 import java.awt.*
 import java.util.List
 import com.actelion.research.orbit.utils.RawUtilsCommon;
 
+import javax.imageio.ImageIO;
+import javax.media.jai.JAI;
+import javax.media.jai.TiledImage;
+import java.awt.*;
+import java.awt.color.ColorSpace;
+import java.awt.image.*;
+import java.io.File;
+import java.io.IOException;
+
 //Parameters
-topDirPath = 'C:/Users/dev/Desktop/test3';
+topDirPath = '/home/willem/dev/test';
 totalOutputFilename = "/OUTPUT_TOTAL.json";
 outputFilename = "/OUTPUT.json";
 classImageFilename = "/OUTPUT";
-skipDone = true
+skipDone = false
 useROI = true
 classImgFactor = 16
 //int outputWidth = 1024;
@@ -83,7 +94,8 @@ topDir.eachDir{
     if((rawAnno[0] != null) && useROI){
         rawAnno.each{
             anno = new ImageAnnotation(it);
-            roi = anno.getFirstShape()
+            IScaleableShape roi = anno.getFirstShape()
+            roi = roi.getScaledInstance(100d, new Point(0, 0))
             rf.setROI(roi);
             println "Using ROI: \n" + anno.toString()  
                 //Run Classification
@@ -108,15 +120,30 @@ topDir.eachDir{
 
 
             //Save ClassImage
-            def fn = path + classImageFilename + "_ROI_" + roiNumber + ".jpg";
+            def fn = path + classImageFilename + "_ROI_" + roiNumber + ".png";
             Rectangle bBox = roi.getBounds();
             println bBox;
             
             TiledImage classImg = rf.getClassImage().getImage();
-            //OrbitTiledImage2 mainImgTmp = rf.bimg.getImage();
-            classImgSub = classImg.getSubImage(bBox.x,bBox.y,bBox.width,bBox.height);
-            ClassImageRenderer renderer = new ClassImageRenderer();
-            renderer.saveToDisk(classImg, fn);
+            bi =  new BufferedImage((int)bBox.width,(int) bBox.height, BufferedImage.TYPE_INT_RGB)
+            WritableRaster r = bi.getRaster();
+            for (int x = 0; x <  bBox.width; x++){
+			for (int y = 0; y <  bBox.height; y++){
+            		int ox = x + (int) bBox.x
+            		int oy = y + (int) bBox.y
+            		for(int c = 0; c<3;c++){
+                		r.setSample(x,y,c,classImg.getSample(ox,oy,c))
+                	}
+			}
+            }
+            ImageIO.write(bi, "png", new File(fn))
+
+            // //OrbitTiledImage2 mainImgTmp = rf.bimg.getImage();
+            // classImgSub = classImg.getSubImage((int) bBox.x,(int) bBox.y,(int) bBox.width,(int) bBox.height);
+            // ClassImageRenderer renderer = new ClassImageRenderer();
+            // renderer.saveToDisk(classImg, fn);
+                        		
+        
 
 
             // println("start loading classification image");
