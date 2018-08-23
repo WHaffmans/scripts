@@ -26,23 +26,44 @@ import java.io.IOException;
 
 //Parameters
 topDirPath = 'C:\\Users\\Hajo\\Desktop\\Orbit batch test';
+
 totalOutputFilename = "/OUTPUT_TOTAL.json";
 outputFilename = "/OUTPUT.json";
 classImageFilename = "/OUTPUT";
+exModelfn ="Ex.omo"
+classModelfn ="Classification zonder Ex.omo"
+globalExModel = true
+globalClassModel = true
 skipDone = false
 useROI = true
 classImgFactor = 16
-//int outputWidth = 1024;
 pixelFuzzyness = 0d;
+
+OrbitModel exModel = null
+Orbitmodel classModel = null
+
+exModelPath = topDirPath + "/" + exModelfn
+exModelFile = new File(exModelPath)
+if (exModelFile.exists() && globalExModel){
+    exModel = OrbitModel.LoadFromFile(exModelPath);
+}
+
+classModelPath = topDirPath + "/" + classModelfn
+classModelFile = new File(classModelPath)
+if (classModelFile.exists() && globalClassModel){
+    classModel = OrbitModel.LoadFromFile(exModelPath);
+}
+
 OrbitLogAppender.GUI_APPENDER = false; // no GUI (error) popups
 
-startScriptTime = System.currentTimeMillis() 
+startScriptTime = System.currentTimeMillis()   
 totalOutputFile = new File(topDirPath + totalOutputFilename)
 totalOutputFile.text = "["
 topDir = new File(topDirPath); 
 firstFile = true
 countDoneTotal = 0
 countDoneThisRun = 0
+
 //Switch to Local Image provider
 if (!DALConfig.isLocalImageProvider()){
     DALConfig.switchLocalRemoteImageProvider();
@@ -70,7 +91,10 @@ topDir.eachDir{
     it.eachFileMatch ~/Classification met Ex.omo$/, {modelPath = it.path}  //TODO: check en log
     println "load model: " + modelPath
     OrbitModel model = OrbitModel.LoadFromFile(modelPath); //try-catch?
-
+    if (classModel == null){
+        classModel = model
+        }
+        
     //Get current Image
     imgPath = ""
     println "match image file"
@@ -80,14 +104,18 @@ topDir.eachDir{
     println "create RecognitionFrame with rdfId = " + rdf.getRawDataFileId()
     RecognitionFrame rf = new RecognitionFrame(rdf);
     
-    rf.setModel(model);
+    rf.setModel(classModel);
     rmList =  ip.LoadRawMetasByRawDataFile(rdf.getRawDataFileId())
     mMeterPerPixel = rmList.find {it.name == "mMeterPerPixel"}.value.toDouble()
     pixelArea = mMeterPerPixel * mMeterPerPixel
     rf.constructClassificationImage(); //maybe del?
     rawAnno = ip.LoadRawAnnotationsByRawDataFile(rdf.rawDataFileId, RawAnnotation.ANNOTATION_TYPE_IMAGE)    
     println "create exclusionMapGen";
-    exclusionMapGen = ExclusionMapGen.constructExclusionMap(rdf, rf, model, null)
+    if(exModel==null){
+       exModel = model
+       }
+    
+    exclusionMapGen = ExclusionMapGen.constructExclusionMap(rdf, rf, exModel, null)
     resStr = ""
     roiNumber = 1
     path = it.path
@@ -101,7 +129,7 @@ topDir.eachDir{
                 //Run Classification
 
             println "create ClassificationWorker";
-            cw = new ClassificationWorker( rdf,  rf,  model, true, exclusionMapGen, null) 
+            cw = new ClassificationWorker( rdf,  rf,  classModel, true, exclusionMapGen, null) 
             println "start Worker";
             println "ROI: " + cw.getRoi().toString()
             cw.setPixelFuzzyness(pixelFuzzyness);
@@ -132,39 +160,12 @@ topDir.eachDir{
             		int ox = x*classImgFactor + (int) bBox.x
             		int oy = y*classImgFactor + (int) bBox.y
             		for(int c = 0; c<3;c++){
-                		r.setSample(x,y,c,classImg.getSample(ox,oy,c))
-                	}
+                		    r.setSample(x,y,c,classImg.getSample(ox,oy,c))
+                	    }
 			}
             }
-            ImageIO.write(bi, "png", new File(fn))
-
-            // //OrbitTiledImage2 mainImgTmp = rf.bimg.getImage();
-            // classImgSub = classImg.getSubImage((int) bBox.x,(int) bBox.y,(int) bBox.width,(int) bBox.height);
-            // ClassImageRenderer renderer = new ClassImageRenderer();
-            // renderer.saveToDisk(classImg, fn);
-                        		
-        
-
-
-            // println("start loading classification image");
-            // final TiledImage classImg = rf.getClassImage().getImage();
-            // scale = (mMeterPerPixel / 0.228)
-            // outputWidth = (int) (scale * (classImg.getWidth() / classImgFactor) + 0.5d);
-            // println "outputWidth = " + outputWidth
-            // OrbitTiledImage2 mainImgTmp = rf.bimg.getImage();
-            // for (TiledImagePainter tip: rf.bimg.getMipMaps()) {
-            //     // find a good resolution size
-            //     if (tip.getWidth()>outputWidth)
-            //         mainImgTmp = tip.getImage();
-            // }
-            // final OrbitTiledImage2 mainImg = mainImgTmp;
-            // ClassImageRenderer renderer = new ClassImageRenderer();
-            // int height = (int) (classImg.getHeight() * (outputWidth / (double) classImg.getWidth()));
-            // println("start saving classification image to disk");
-            // BufferedImage bi = renderer.downsample(classImg, mainImg, outputWidth, height);
-            // println("writing")
-            // renderer.saveToDisk(bi, fn);
             
+            ImageIO.write(bi, "png", new File(fn))
             roiNumber++
         }
 
