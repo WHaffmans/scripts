@@ -16,9 +16,6 @@ import java.util.List
 import com.actelion.research.orbit.utils.RawUtilsCommon;
 
 import javax.imageio.ImageIO;
-import javax.media.jai.JAI;
-import javax.media.jai.TiledImage;
-import java.awt.*;
 import java.awt.color.ColorSpace;
 import java.awt.image.*;
 import java.io.File;
@@ -38,6 +35,8 @@ skipDone = false
 useROI = true
 classImgFactor = 16
 pixelFuzzyness = 0d;
+
+//End of parameters
 
 OrbitModel exModel = null
 Orbitmodel classModel = null
@@ -86,15 +85,14 @@ topDir.eachDir{
         return
     }
     //Get current model
-    modelPath = ""
-    println "match model file"
-    it.eachFileMatch ~/Classification met Ex.omo$/, {modelPath = it.path}  //TODO: check en log
-    println "load model: " + modelPath
-    OrbitModel model = OrbitModel.LoadFromFile(modelPath); //try-catch?
-    if (!globalClassModel){
-        classModel = model
+   if (!globalClassModel){
+        modelPath = ""
+        println "match model file"
+        it.eachFileMatch ~/Classification met Ex.omo$/, {modelPath = it.path}  //TODO: check en log
+        println "load model: " + modelPath
+        OrbitModel classModel = OrbitModel.LoadFromFile(modelPath); //try-catch?
         }
-        
+
     //Get current Image
     imgPath = ""
     println "match image file"
@@ -103,18 +101,18 @@ topDir.eachDir{
     rdf = ip.registerFile(new File(imgPath), 0);
     println "create RecognitionFrame with rdfId = " + rdf.getRawDataFileId()
     RecognitionFrame rf = new RecognitionFrame(rdf);
-    
+
     rf.setModel(classModel);
     rmList =  ip.LoadRawMetasByRawDataFile(rdf.getRawDataFileId())
     mMeterPerPixel = rmList.find {it.name == "mMeterPerPixel"}.value.toDouble()
     pixelArea = mMeterPerPixel * mMeterPerPixel
     rf.constructClassificationImage(); //maybe del?
-    rawAnno = ip.LoadRawAnnotationsByRawDataFile(rdf.rawDataFileId, RawAnnotation.ANNOTATION_TYPE_IMAGE)    
+    rawAnno = ip.LoadRawAnnotationsByRawDataFile(rdf.rawDataFileId, RawAnnotation.ANNOTATION_TYPE_IMAGE)
     println "create exclusionMapGen";
     if(!globalExModel){
        exModel = model
        }
-    
+
     exclusionMapGen = ExclusionMapGen.constructExclusionMap(rdf, rf, exModel, null)
     resStr = ""
     roiNumber = 1
@@ -151,7 +149,7 @@ topDir.eachDir{
             def fn = path + classImageFilename + "_ROI_" + roiNumber + ".png";
             Rectangle bBox = roi.getBounds();
             println bBox;
-            
+
             TiledImage classImg = rf.getClassImage().getImage();
             bi =  new BufferedImage((int)(bBox.width/classImgFactor),(int) (bBox.height/classImgFactor), BufferedImage.TYPE_INT_RGB)
             WritableRaster r = bi.getRaster();
@@ -164,7 +162,7 @@ topDir.eachDir{
                 	    }
 			}
             }
-            
+
             ImageIO.write(bi, "png", new File(fn))
             roiNumber++
         }
@@ -175,20 +173,20 @@ topDir.eachDir{
         println "results:\n" + resStr + "\n";
 
         outputFile.text = resStr;
-    
+
         totalOutputFile.append(resStr + '\n');
         firstFile = false
         OrbitUtils.cleanUpTemp(); //Cleanup temp folder   
         println "Temp files cleaned";
-        
+
         countDoneThisRun++
         println "Done with image " + countDoneThisRun + ": " + it.path; //print elke folder in de topfolder
-        
+
     } else{
         println "No ROI found"
         return
     }
-    
+
 }
 totalOutputFile.append("]") 
 println "Run completed with " + countDoneTotal + " classifications and " + countDoneThisRun + " results written in " + (startFolderTime - startScriptTime)/1000 + " seconds."
