@@ -23,14 +23,13 @@ import java.io.IOException;
 
 //Parameters
 topDirPath = 'C:\\Users\\Hajo\\Desktop\\Orbit batch test';
-
 totalOutputFilename = "/OUTPUT_TOTAL.json";
 outputFilename = "/OUTPUT.json";
 classImageFilename = "/OUTPUT";
 exModelfn ="Ex.omo"
 classModelfn ="Classification zonder Ex.omo"
-globalExModel = true
-globalClassModel = true
+globalExModel = false
+globalClassModel = false
 skipDone = false
 useROI = true
 classImgFactor = 16
