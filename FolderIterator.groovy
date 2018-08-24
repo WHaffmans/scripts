@@ -91,7 +91,7 @@ topDir.eachDir{
     it.eachFileMatch ~/Classification met Ex.omo$/, {modelPath = it.path}  //TODO: check en log
     println "load model: " + modelPath
     OrbitModel model = OrbitModel.LoadFromFile(modelPath); //try-catch?
-    if (classModel == null){
+    if (!globalClassModel){
         classModel = model
         }
         
@@ -111,7 +111,7 @@ topDir.eachDir{
     rf.constructClassificationImage(); //maybe del?
     rawAnno = ip.LoadRawAnnotationsByRawDataFile(rdf.rawDataFileId, RawAnnotation.ANNOTATION_TYPE_IMAGE)    
     println "create exclusionMapGen";
-    if(exModel==null){
+    if(!globalExModel){
        exModel = model
        }
     
