@@ -22,23 +22,23 @@ import java.io.File;
 import java.io.IOException;
 
 //Parameters
-topDirPath = 'C:\\Users\\Hajo\\Desktop\\Orbit batch test';
+topDirPath = '/home/willem/dev/test';
 totalOutputFilename = "/OUTPUT_TOTAL.json";
 outputFilename = "/OUTPUT.json";
 classImageFilename = "/OUTPUT";
-exModelfn ="Ex.omo"
-classModelfn ="Classification zonder Ex.omo"
-globalExModel = false
-globalClassModel = false
+exModelfn = ""        //"Ex.omo"
+classModelfn = ""    //"Classification zonder Ex.omo"
 skipDone = false
 useROI = true
-classImgFactor = 16
+classImgFactor = 4
 pixelFuzzyness = 0d;
 
 //End of parameters
 
+globalExModel = exModelfn != ""
+globalClassModel = classModelfn != ""
 OrbitModel exModel = null
-Orbitmodel classModel = null
+OrbitModel classModel = null
 
 exModelPath = topDirPath + "/" + exModelfn
 exModelFile = new File(exModelPath)
@@ -55,6 +55,9 @@ if (classModelFile.exists() && globalClassModel){
 OrbitLogAppender.GUI_APPENDER = false; // no GUI (error) popups
 
 startScriptTime = System.currentTimeMillis()   
+def String timer(){
+	return "["+(System.currentTimeMillis() - startScriptTime)/1000 + "] "
+	}
 totalOutputFile = new File(topDirPath + totalOutputFilename)
 totalOutputFile.text = "["
 topDir = new File(topDirPath); 
@@ -71,14 +74,14 @@ ip = DALConfig.getImageProvider(); //TODO: heeft dit ook een check nodig?
 topDir.eachDir{
     countDoneTotal++
     startFolderTime = System.currentTimeMillis() 
-    println "Enter Folder number " + countDoneTotal +  " ("+ (startFolderTime - startScriptTime)/1000 +"):\n" + it.path; //print elke folder in de topfolder
-
+    println timer() + "Folder(" + countDoneTotal  +"): " + it.path; //print elke folder in de topfolder
+   
     if(!firstFile){
         totalOutputFile.append(",")
     }
     outputFile = new File(it.path + outputFilename)
     if(outputFile.exists() && skipDone){
-        println "Output file already exists, skipping..."
+        println timer() + "Output file already exists, skipping..."
         totalOutputFile.append(outputFile.text + '\n')
         firstFile = false
         return
@@ -86,19 +89,17 @@ topDir.eachDir{
     //Get current model
    if (!globalClassModel){
         modelPath = ""
-        println "match model file"
         it.eachFileMatch ~/Classification met Ex.omo$/, {modelPath = it.path}  //TODO: check en log
-        println "load model: " + modelPath
-        OrbitModel classModel = OrbitModel.LoadFromFile(modelPath); //try-catch?
+        
+        classModel = OrbitModel.LoadFromFile(modelPath); //try-catch?
+        //println timer() + classModel
         }
 
     //Get current Image
     imgPath = ""
-    println "match image file"
     it.eachFileMatch ~/.*\.ndpi$/, {imgPath = it.path} //TODO: check en log
-    println "create RawDataFile"
     rdf = ip.registerFile(new File(imgPath), 0);
-    println "create RecognitionFrame with rdfId = " + rdf.getRawDataFileId()
+    println timer()+ "rdfId = " + rdf.getRawDataFileId()
     RecognitionFrame rf = new RecognitionFrame(rdf);
 
     rf.setModel(classModel);
@@ -106,10 +107,15 @@ topDir.eachDir{
     mMeterPerPixel = rmList.find {it.name == "mMeterPerPixel"}.value.toDouble()
     pixelArea = mMeterPerPixel * mMeterPerPixel
     rf.constructClassificationImage(); //maybe del?
+
+    rf.getClassShapes().find{ it.getName() == "Background"}.setColor(Color.BLACK)
+    rf.getClassShapes().find{ it.getName() == "Ery"}.setColor(Color.RED)
+    rf.getClassShapes().find{ it.getName() == "FibriPlate"}.setColor(Color.GREEN)
+    rf.getClassShapes().find{ it.getName() == "Leuko"}.setColor(Color.BLUE)
+    
     rawAnno = ip.LoadRawAnnotationsByRawDataFile(rdf.rawDataFileId, RawAnnotation.ANNOTATION_TYPE_IMAGE)
-    println "create exclusionMapGen";
     if(!globalExModel){
-       exModel = model
+       exModel = classModel
        }
 
     exclusionMapGen = ExclusionMapGen.constructExclusionMap(rdf, rf, exModel, null)
@@ -122,18 +128,17 @@ topDir.eachDir{
             IScaleableShape roi = anno.getFirstShape()
             roi = roi.getScaledInstance(100d, new Point(0, 0))
             rf.setROI(roi);
-            println "Using ROI: \n" + anno.toString()  
+            println timer() + anno.toString()  
                 //Run Classification
 
-            println "create ClassificationWorker";
             cw = new ClassificationWorker( rdf,  rf,  classModel, true, exclusionMapGen, null) 
-            println "start Worker";
-            println "ROI: " + cw.getRoi().toString()
+            println timer()+"Classify ROI: " + roiNumber;
+           
             cw.setPixelFuzzyness(pixelFuzzyness);
             cw.setDoNormalize(false);
             cw.doWork();
 
-            println "Worker finished"
+            println timer()+"Done!"
 
             //Construct resultString resStr
             resStr += "{\n  \"";
@@ -143,22 +148,29 @@ topDir.eachDir{
             resStr += "  \"ROI\" : " + roiNumber + "\n"
             resStr += "},\n"
 
-
             //Save ClassImage
             def fn = path + classImageFilename + "_ROI_" + roiNumber + ".png";
             Rectangle bBox = roi.getBounds();
-            println bBox;
+            println timer() + "Bounding box: " + bBox;
 
             TiledImage classImg = rf.getClassImage().getImage();
+            ori = rf.bimg.getImage()
+            opacity = 0.50
             bi =  new BufferedImage((int)(bBox.width/classImgFactor),(int) (bBox.height/classImgFactor), BufferedImage.TYPE_INT_RGB)
             WritableRaster r = bi.getRaster();
             for (int x = 0; x <  bi.width; x++){
 			for (int y = 0; y <  bi.height; y++){
             		int ox = x*classImgFactor + (int) bBox.x
             		int oy = y*classImgFactor + (int) bBox.y
+            		
+            			
+            		
             		for(int c = 0; c<3;c++){
-                		    r.setSample(x,y,c,classImg.getSample(ox,oy,c))
+            				//sample = classImg.getSample(ox,oy,2)==255?ori.getSample(ox,oy,c):0
+                            sample = classImg.getSample(ox,oy,c)*opacity + ori.getSample(ox,oy,c)*(1-opacity)
+                		    r.setSample(x,y,c,sample)
                 	    }
+            		
 			}
             }
 
@@ -169,26 +181,26 @@ topDir.eachDir{
         resStr = resStr[0..-3]
 
         //Print and accumulate results
-        println "results:\n" + resStr + "\n";
+        println timer() + "results:\n" + resStr + "\n";
 
         outputFile.text = resStr;
 
         totalOutputFile.append(resStr + '\n');
         firstFile = false
         OrbitUtils.cleanUpTemp(); //Cleanup temp folder   
-        println "Temp files cleaned";
+        println timer() + "Temp files cleaned";
 
         countDoneThisRun++
-        println "Done with image " + countDoneThisRun + ": " + it.path; //print elke folder in de topfolder
+        println timer() + "Done with image " + countDoneThisRun + ": " + it.path; //print elke folder in de topfolder
 
     } else{
-        println "No ROI found"
+        println timer() + "No ROI found"
         return
     }
 
 }
 totalOutputFile.append("]") 
-println "Run completed with " + countDoneTotal + " classifications and " + countDoneThisRun + " results written in " + (startFolderTime - startScriptTime)/1000 + " seconds."
+println "Run completed with " + countDoneTotal + " classifications and " + countDoneThisRun + " results written in " + timer() + " seconds."
 
 ip.close(); // close image provider connection
 
