@@ -148,8 +148,9 @@ topDir.eachDir{
             resStr += "  \"ROI\" : " + roiNumber + "\n"
             resStr += "},\n"
 
+
             //Save ClassImage
-            def fn = path + classImageFilename + "_ROI_" + roiNumber + ".png";
+            def fn = path + classImageFilename + "_ROI_" + roiNumber + "_overlay.png";
             Rectangle bBox = roi.getBounds();
             println timer() + "Bounding box: " + bBox;
 
@@ -175,6 +176,39 @@ topDir.eachDir{
             }
 
             ImageIO.write(bi, "png", new File(fn))
+            
+            classes = ["Ery","FibriPlate","Leuko"]
+            
+                        //Save ClassImage
+            for( int cl = 0; cl<3; cl++ ){            
+            def fn = path + classImageFilename + "_ROI_" + roiNumber + "_"+ classes[cl] + ".png";
+            Rectangle bBox = roi.getBounds();
+            println timer() + "Bounding box: " + bBox;
+
+            TiledImage classImg = rf.getClassImage().getImage();
+            ori = rf.bimg.getImage()
+            
+            bi =  new BufferedImage((int)(bBox.width/classImgFactor),(int) (bBox.height/classImgFactor), BufferedImage.TYPE_INT_RGB)
+            WritableRaster r = bi.getRaster();
+            for (int x = 0; x <  bi.width; x++){
+			for (int y = 0; y <  bi.height; y++){
+            		int ox = x*classImgFactor + (int) bBox.x
+            		int oy = y*classImgFactor + (int) bBox.y
+            		
+            		for(int c = 0; c<3;c++){
+            				sample = classImg.getSample(ox,oy,cl) == 255 ? ori.getSample(ox,oy,c) : 0
+                            //sample = classImg.getSample(ox,oy,c)*opacity + ori.getSample(ox,oy,c)*(1-opacity)
+                		    r.setSample(x,y,c,sample)
+                	    }
+            		
+			}
+            }
+
+            ImageIO.write(bi, "png", new File(fn))
+            
+            }
+            
+            
             roiNumber++
         }
 
