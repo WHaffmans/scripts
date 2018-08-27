@@ -30,7 +30,7 @@ exModelfn = ""        //"Ex.omo"
 classModelfn = ""    //"Classification zonder Ex.omo"
 skipDone = false
 useROI = true
-classImgFactor = 1
+classImgFactor = 4
 pixelFuzzyness = 0d;
 
 //End of parameters
@@ -133,6 +133,8 @@ topDir.eachDir{
 
             cw = new ClassificationWorker( rdf,  rf,  classModel, true, exclusionMapGen, null) 
             println timer()+"Classify ROI: " + roiNumber;
+            bBox = roi.getBounds();
+            println timer() + "Bounding box: " + bBox;
            
             cw.setPixelFuzzyness(pixelFuzzyness);
             cw.setDoNormalize(false);
@@ -147,84 +149,37 @@ topDir.eachDir{
             resStr += "  \"BL\" : " + imgPath.find('(?<=BL_?)\\d{1,4}') + ",\n"
             resStr += "  \"ROI\" : " + roiNumber + "\n"
             resStr += "},\n"
-
-
-            //Save ClassImage
             
-            bBox = roi.getBounds();
-            println timer() + "Bounding box: " + bBox;
-
+            //Save ClassImage
             classImg = rf.getClassImage().getImage();
             ori = rf.bimg.getImage()
 
-            tileSize = 4096
-            new File(path + "/Overlay").mkdir()
-            new File(path + "/Ori").mkdir()
+            tileSize = 1024
+
             new File(path + "/duo").mkdir()
 
-            for (tx = 0; tx < bBox.getWidth()/tileSize; tx++ ) {
-                for (ty = 0; ty< bBox.getHeight()/tileSize; ty++ ){
-
-
-                    // fn = path +"/Overlay"+ classImageFilename + "_ROI_" + roiNumber + "["+tx+"x"+ty+"].png";
-                    // bi =  new BufferedImage(tileSize,tileSize, BufferedImage.TYPE_INT_RGB)
-                    // r = bi.getRaster();
-                    // for (int x = 0; x <  bi.width; x++){
-                    //     for (int y = 0; y <  bi.height; y++){
-                    //         int ox = tx * tileSize + x*classImgFactor + (int) bBox.x
-                    //         int oy = ty *tileSize + y*classImgFactor + (int) bBox.y
-                    //         for(int c = 0; c<3;c++){
-                    //             //sample = classImg.getSample(ox,oy,2)==255?ori.getSample(ox,oy,c):0
-                    //             sample = classImg.getSample(ox,oy,c)
-                    //             r.setSample(x,y,c,sample)
-                    //         }
-                    //     }
-                    // }
-                    // ImageIO.write(bi, "png", new File(fn))
-                    
-                    // fn = path +"/Ori"+ classImageFilename + "_ROI_" + roiNumber + "["+tx+"x"+ty+"].png";
-                    // bi =  new BufferedImage(tileSize,tileSize, BufferedImage.TYPE_INT_RGB)
-                    // r = bi.getRaster();
-                    // for (int x = 0; x <  bi.width; x++){
-                    //     for (int y = 0; y <  bi.height; y++){
-                    //         int ox = tx * tileSize + x*classImgFactor + (int) bBox.x
-                    //         int oy = ty *tileSize + y*classImgFactor + (int) bBox.y
-                    //         for(int c = 0; c<3;c++){
-                    //             //sample = classImg.getSample(ox,oy,2)==255?ori.getSample(ox,oy,c):0
-                    //             sample = ori.getSample(ox,oy,c)
-                    //             r.setSample(x,y,c,sample)
-                    //         }
-                    //     }
-                    // }
-
-                    
-
-                    // ImageIO.write(bi, "png", new File(fn))
+            for (tx = 0; tx < bBox.getWidth()/(tileSize*classImgFactor); tx++ ) {
+                for (ty = 0; ty< bBox.getHeight()/(tileSize*classImgFactor); ty++ ){
 
                     fn = path +"/duo"+ classImageFilename + "_ROI_" + roiNumber + "["+tx+"x"+ty+"].png";
                     bi =  new BufferedImage(tileSize*2,tileSize, BufferedImage.TYPE_INT_RGB)
                     r = bi.getRaster();
                     for (int x = 0; x <  tileSize; x++){
                         for (int y = 0; y <  tileSize; y++){
-                            int ox = tx * tileSize + x*classImgFactor + (int) bBox.x
-                            int oy = ty *tileSize + y*classImgFactor + (int) bBox.y
+                            int ox = tx * tileSize * classImgFactor + x * classImgFactor + (int) bBox.x
+                            int oy = ty * tileSize * classImgFactor + y * classImgFactor + (int) bBox.y
                             for(int c = 0; c<3;c++){
                                 //sample = classImg.getSample(ox,oy,2)==255?ori.getSample(ox,oy,c):0
-                                sample = ori.getSample(ox,oy,c)
-                                r.setSample(x,y,c,sample)
-                                sample = classImg.getSample(ox,oy,c)
-                                r.setSample(x+tileSize,y,c,sample)
+                                if (ox < ori.getWidth() && oy < ori.getHeight()){
+                                    sample = ori.getSample(ox,oy,c)
+                                    r.setSample(x,y,c,sample)
+                                    sample = classImg.getSample(ox,oy,c)
+                                    r.setSample(x+tileSize,y,c,sample)
+                                }
                             }
                         }
                     }
-
-                    
-
                     ImageIO.write(bi, "png", new File(fn))
-                    
-                    
-                    
-                    
                 }
 
             }
@@ -246,7 +201,7 @@ topDir.eachDir{
         countDoneThisRun++
         println timer() + "Done with image " + countDoneThisRun + ": " + it.path; //print elke folder in de topfolder
 
-    } else{
+    } else {
         println timer() + "No ROI found"
         return
     }
