@@ -161,9 +161,10 @@ topDir.eachDir{
             
             classImgFactor = (int) Math.max(Math.ceil(Math.max(bBox.width/maxSize, bBox.height/maxSize)),minF)
             println timer() + "classImgFactor = " + classImgFactor
-            fn = path + classImageFilename + "_ROI_" + roiNumber + "_overlay_F"+classImgFactor+".png";
+            fn = path + classImageFilename + "_ROI_" + roiNumber + "_Overlay_F"+classImgFactor+".png";
             bi =  new BufferedImage((int)(bBox.width/classImgFactor),(int) (bBox.height/classImgFactor), BufferedImage.TYPE_INT_RGB)
             r = bi.getRaster();
+            println timer() + "Prepare Overlay"
             for (int x = 0; x <  bi.width; x++){
                 for (int y = 0; y <  bi.height; y++){
                     int ox = x*classImgFactor + (int) bBox.x
@@ -177,13 +178,14 @@ topDir.eachDir{
                         
                 }
             }
-
+		  println timer() + "Write Overlay"
             ImageIO.write(bi, "png", new File(fn))
             
             classes = ["Ery","FibriPlate","Leuko"]
             
                         //Save ClassImage
-            for( int cl = 0; cl<3; cl++ ){            
+            for( int cl = 0; cl<3; cl++ ){  
+            	 println timer() + "Prepare " + classes[cl]          
                 fn = path + classImageFilename + "_ROI_" + roiNumber + "_"+ classes[cl] + "_F"+ classImgFactor +".png";
                 bi =  new BufferedImage((int)(bBox.width/classImgFactor),(int) (bBox.height/classImgFactor), BufferedImage.TYPE_INT_RGB)
                 r = bi.getRaster();
@@ -199,6 +201,7 @@ topDir.eachDir{
                         }
                     }
                 }
+                println timer() + "Write " + classes[cl] 
                 ImageIO.write(bi, "png", new File(fn))
             }
             roiNumber++
