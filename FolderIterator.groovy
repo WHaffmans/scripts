@@ -156,6 +156,10 @@ topDir.eachDir{
 
             TiledImage classImg = rf.getClassImage().getImage();
             ori = rf.bimg.getImage()
+            maxSize = 8000
+            classImgFactor = Math.max(bBox.width/maxSize, bBox.height/maxSize)
+            
+
             opacity = 0.50
             bi =  new BufferedImage((int)(bBox.width/classImgFactor),(int) (bBox.height/classImgFactor), BufferedImage.TYPE_INT_RGB)
             WritableRaster r = bi.getRaster();
@@ -181,15 +185,15 @@ topDir.eachDir{
             
                         //Save ClassImage
             for( int cl = 0; cl<3; cl++ ){            
-            def fn = path + classImageFilename + "_ROI_" + roiNumber + "_"+ classes[cl] + ".png";
-            Rectangle bBox = roi.getBounds();
+            fn = path + classImageFilename + "_ROI_" + roiNumber + "_"+ classes[cl] + ".png";
+            bBox = roi.getBounds();
             println timer() + "Bounding box: " + bBox;
 
-            TiledImage classImg = rf.getClassImage().getImage();
+            classImg = rf.getClassImage().getImage();
             ori = rf.bimg.getImage()
             
             bi =  new BufferedImage((int)(bBox.width/classImgFactor),(int) (bBox.height/classImgFactor), BufferedImage.TYPE_INT_RGB)
-            WritableRaster r = bi.getRaster();
+            r = bi.getRaster();
             for (int x = 0; x <  bi.width; x++){
 			for (int y = 0; y <  bi.height; y++){
             		int ox = x*classImgFactor + (int) bBox.x
