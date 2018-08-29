@@ -30,8 +30,10 @@ exModelfn = ""        //"Ex.omo"
 classModelfn = ""    //"Classification zonder Ex.omo"
 skipDone = false
 useROI = true
-classImgFactor = 4
 pixelFuzzyness = 0d;
+maxSize = 4000
+minF = 4
+opacity = 0.30
 
 //End of parameters
 
@@ -128,12 +130,13 @@ topDir.eachDir{
             IScaleableShape roi = anno.getFirstShape()
             roi = roi.getScaledInstance(100d, new Point(0, 0))
             rf.setROI(roi);
-            println timer() + anno.toString()  
+              
                 //Run Classification
 
             cw = new ClassificationWorker( rdf,  rf,  classModel, true, exclusionMapGen, null) 
             println timer()+"Classify ROI: " + roiNumber;
-           
+            bBox = roi.getBounds();
+            println timer() + "Bounding box: " + bBox;
             cw.setPixelFuzzyness(pixelFuzzyness);
             cw.setDoNormalize(false);
             cw.doWork();
@@ -150,33 +153,29 @@ topDir.eachDir{
 
 
             //Save ClassImage
-            def fn = path + classImageFilename + "_ROI_" + roiNumber + "_overlay.png";
-            Rectangle bBox = roi.getBounds();
-            println timer() + "Bounding box: " + bBox;
-
-            TiledImage classImg = rf.getClassImage().getImage();
-            ori = rf.bimg.getImage()
-            maxSize = 8000
-            classImgFactor = Math.max(bBox.width/maxSize, bBox.height/maxSize)
             
+           
 
-            opacity = 0.50
+            classImg = rf.getClassImage().getImage();
+            ori = rf.bimg.getImage()
+            
+            classImgFactor = (int) Math.max(Math.ceil(Math.max(bBox.width/maxSize, bBox.height/maxSize)),minF)
+            println timer() + "classImgFactor = " + classImgFactor
+            fn = path + classImageFilename + "_ROI_" + roiNumber + "_overlay_F"+classImgFactor+".png";
             bi =  new BufferedImage((int)(bBox.width/classImgFactor),(int) (bBox.height/classImgFactor), BufferedImage.TYPE_INT_RGB)
-            WritableRaster r = bi.getRaster();
+            r = bi.getRaster();
             for (int x = 0; x <  bi.width; x++){
-			for (int y = 0; y <  bi.height; y++){
-            		int ox = x*classImgFactor + (int) bBox.x
-            		int oy = y*classImgFactor + (int) bBox.y
-            		
-            			
-            		
-            		for(int c = 0; c<3;c++){
-            				//sample = classImg.getSample(ox,oy,2)==255?ori.getSample(ox,oy,c):0
-                            sample = classImg.getSample(ox,oy,c)*opacity + ori.getSample(ox,oy,c)*(1-opacity)
-                		    r.setSample(x,y,c,sample)
-                	    }
-            		
-			}
+                for (int y = 0; y <  bi.height; y++){
+                    int ox = x*classImgFactor + (int) bBox.x
+                    int oy = y*classImgFactor + (int) bBox.y
+                    
+                    for(int c = 0; c<3;c++){
+                        //sample = classImg.getSample(ox,oy,2)==255?ori.getSample(ox,oy,c):0
+                        sample = classImg.getSample(ox,oy,c)*opacity + ori.getSample(ox,oy,c)*(1-opacity)
+                        r.setSample(x,y,c,sample)
+                    }
+                        
+                }
             }
 
             ImageIO.write(bi, "png", new File(fn))
@@ -185,34 +184,23 @@ topDir.eachDir{
             
                         //Save ClassImage
             for( int cl = 0; cl<3; cl++ ){            
-            fn = path + classImageFilename + "_ROI_" + roiNumber + "_"+ classes[cl] + ".png";
-            bBox = roi.getBounds();
-            println timer() + "Bounding box: " + bBox;
-
-            classImg = rf.getClassImage().getImage();
-            ori = rf.bimg.getImage()
-            
-            bi =  new BufferedImage((int)(bBox.width/classImgFactor),(int) (bBox.height/classImgFactor), BufferedImage.TYPE_INT_RGB)
-            r = bi.getRaster();
-            for (int x = 0; x <  bi.width; x++){
-			for (int y = 0; y <  bi.height; y++){
-            		int ox = x*classImgFactor + (int) bBox.x
-            		int oy = y*classImgFactor + (int) bBox.y
-            		
-            		for(int c = 0; c<3;c++){
-            				sample = classImg.getSample(ox,oy,cl) == 255 ? ori.getSample(ox,oy,c) : 0
+                fn = path + classImageFilename + "_ROI_" + roiNumber + "_"+ classes[cl] + "_F"+ classImgFactor +".png";
+                bi =  new BufferedImage((int)(bBox.width/classImgFactor),(int) (bBox.height/classImgFactor), BufferedImage.TYPE_INT_RGB)
+                r = bi.getRaster();
+                for (int x = 0; x <  bi.width; x++){
+                    for (int y = 0; y <  bi.height; y++){
+                        int ox = x*classImgFactor + (int) bBox.x
+                        int oy = y*classImgFactor + (int) bBox.y
+                        
+                        for(int c = 0; c<3;c++){
+                            sample = classImg.getSample(ox,oy,cl) == 255 ? ori.getSample(ox,oy,c) : 0
                             //sample = classImg.getSample(ox,oy,c)*opacity + ori.getSample(ox,oy,c)*(1-opacity)
-                		    r.setSample(x,y,c,sample)
-                	    }
-            		
-			}
+                            r.setSample(x,y,c,sample)
+                        }
+                    }
+                }
+                ImageIO.write(bi, "png", new File(fn))
             }
-
-            ImageIO.write(bi, "png", new File(fn))
-            
-            }
-            
-            
             roiNumber++
         }
 
@@ -231,11 +219,10 @@ topDir.eachDir{
         countDoneThisRun++
         println timer() + "Done with image " + countDoneThisRun + ": " + it.path; //print elke folder in de topfolder
 
-    } else{
+    } else {
         println timer() + "No ROI found"
         return
     }
-
 }
 totalOutputFile.append("]") 
 println "Run completed with " + countDoneTotal + " classifications and " + countDoneThisRun + " results written in " + timer() + " seconds."
