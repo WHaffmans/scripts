@@ -136,6 +136,14 @@ topDir.eachDir{
             cw = new ClassificationWorker( rdf,  rf,  classModel, true, exclusionMapGen, null) 
             println timer()+"Classify ROI: " + roiNumber;
             bBox = roi.getBounds();
+            ori = rf.bimg.getImage();
+            nx = Math.min(Math.max(bBox.x, 0), ori.getWidth() - 1);
+            ny = Math.min(Math.max(bBox.y, 0), ori.getHeight() - 1);
+            nbw = bBox.width + bBox.x - nx;
+            nbh = bBox.height + bBox.y - ny;
+            bBox.width = Math.min(Math.max(nbw, 0), ori.getWidth() - bBox.x);
+            bBox.height = Math.min(Math.max(nbh ,0), ori.getHeight() - bBox.y);
+
             println timer() + "Bounding box: " + bBox;
             cw.setPixelFuzzyness(pixelFuzzyness);
             cw.setDoNormalize(false);
@@ -157,7 +165,7 @@ topDir.eachDir{
            
 
             classImg = rf.getClassImage().getImage();
-            ori = rf.bimg.getImage()
+            
             
             classImgFactor = (int) Math.max(Math.ceil(Math.max(bBox.width/maxSize, bBox.height/maxSize)),minF)
             println timer() + "classImgFactor = " + classImgFactor
