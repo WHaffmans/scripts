@@ -143,6 +143,8 @@ topDir.eachDir{
             nbh = bBox.height + bBox.y - ny;
             bBox.width = Math.min(Math.max(nbw, 0), ori.getWidth() - bBox.x);
             bBox.height = Math.min(Math.max(nbh ,0), ori.getHeight() - bBox.y);
+            bBox.x = nx
+            bBox.y = ny
 
             println timer() + "Bounding box: " + bBox;
             cw.setPixelFuzzyness(pixelFuzzyness);
