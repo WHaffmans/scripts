@@ -28,12 +28,20 @@ outputFilename = "/OUTPUT.json";
 classImageFilename = "/OUTPUT";
 exModelfn = ""        //"Ex.omo"
 classModelfn = ""    //"Classification zonder Ex.omo"
-skipDone = false
-useROI = true
-pixelFuzzyness = 0d;
-maxSize = 4000
+createMask = false  // set True to create  mask per class, false for masked classimage
+skipDone = false    // skips Folder already processed( checks for the existence of outputFilename)
+useROI = true       // set to false to classify whole images
+pixelFuzzyness = 0d;// do not classify all pixels, not compatible with class images    
+maxSize = 4000      // maxSize of classImage
+/* 
+classimagefactor = max of the boundingbox/maxsize and minF 
+therfor minF is the minimumclass image factor when a small roi is used
+should not be set lower then 1
+*/
+
 minF = 4
-opacity = 0.30
+
+opacity = 0.30 //opacity of class image in overlay image
 
 //End of parameters
 
@@ -161,13 +169,8 @@ topDir.eachDir{
             resStr += "  \"ROI\" : " + roiNumber + "\n"
             resStr += "},\n"
 
-
-            //Save ClassImage
-            
-           
-
+            // Save ClassImage
             classImg = rf.getClassImage().getImage();
-            
             
             classImgFactor = (int) Math.max(Math.ceil(Math.max(bBox.width/maxSize, bBox.height/maxSize)),minF)
             println timer() + "classImgFactor = " + classImgFactor
@@ -188,12 +191,12 @@ topDir.eachDir{
                         
                 }
             }
-		  println timer() + "Write Overlay"
+		    println timer() + "Write Overlay"
             ImageIO.write(bi, "png", new File(fn))
             
             classes = ["Ery","FibriPlate","Leuko"]
             
-                        //Save ClassImage
+            // Save ClassImage
             for( int cl = 0; cl<3; cl++ ){  
             	 println timer() + "Prepare " + classes[cl]          
                 fn = path + classImageFilename + "_ROI_" + roiNumber + "_"+ classes[cl] + "_F"+ classImgFactor +".png";
@@ -205,9 +208,15 @@ topDir.eachDir{
                         int oy = y*classImgFactor + (int) bBox.y
                         
                         for(int c = 0; c<3;c++){
-                            sample = classImg.getSample(ox,oy,cl) == 255 ? ori.getSample(ox,oy,c) : 0
-                            //sample = classImg.getSample(ox,oy,c)*opacity + ori.getSample(ox,oy,c)*(1-opacity)
-                            r.setSample(x,y,c,sample)
+                            if(createMask){
+                                sample = classImg.getSample(ox,oy,cl) == 255 ? 255 : 0
+                                //sample = classImg.getSample(ox,oy,c)*opacity + ori.getSample(ox,oy,c)*(1-opacity)
+                                r.setSample(x,y,c,sample)
+                            } else{
+                                sample = classImg.getSample(ox,oy,cl) == 255 ? ori.getSample(ox,oy,c) : 0
+                                //sample = classImg.getSample(ox,oy,c)*opacity + ori.getSample(ox,oy,c)*(1-opacity)
+                                r.setSample(x,y,c,sample)
+                            }
                         }
                     }
                 }
@@ -239,6 +248,4 @@ topDir.eachDir{
 }
 totalOutputFile.append("]") 
 println "Run completed with " + countDoneTotal + " classifications and " + countDoneThisRun + " results written in " + timer() + " seconds."
-
 ip.close(); // close image provider connection
-
