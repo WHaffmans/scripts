@@ -100,7 +100,10 @@ topDir.eachDir{
    if (!globalClassModel){
         modelPath = ""
         it.eachFileMatch ~/Classification met Ex.omo$/, {modelPath = it.path}  //TODO: check en log
-        
+        if(modelPath == ""){
+            println("skipping: " + it.path)
+            return
+        }
         classModel = OrbitModel.LoadFromFile(modelPath); //try-catch?
         //println timer() + classModel
         }
